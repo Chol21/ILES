@@ -1,8 +1,8 @@
-from .models import CustomUser, InternshipPlacement, WeeklyLog
+
 # core/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation, OverallEvaluation
 
 class CustomUserAdmin(UserAdmin):
     """
@@ -78,6 +78,25 @@ class WeeklyLogAdmin(admin.ModelAdmin):
     list_filter = ['status', 'created_at']
     search_fields = ['placement__student__username', 'activities']
     readonly_fields = ['created_at', 'updated_at']
+
+@admin.register(EvaluationCriteria)
+class EvaluationCriteriaAdmin(admin.ModelAdmin):
+    list_display = ['name', 'weight', 'is_active']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name']
+
+
+@admin.register(Evaluation)
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ['placement', 'criteria', 'score', 'evaluated_by']
+    list_filter = ['evaluated_at']
+    search_fields = ['placement__student__username']
+
+
+@admin.register(OverallEvaluation)
+class OverallEvaluationAdmin(admin.ModelAdmin):
+    list_display = ['placement', 'total_score', 'grade', 'evaluated_at']
+    readonly_fields = ['total_score', 'grade']
 # Register the CustomUser model with the custom admin class
 admin.site.register(CustomUser, CustomUserAdmin)from django.contrib import admin
 

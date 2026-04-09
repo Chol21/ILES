@@ -59,7 +59,6 @@ class CustomUser(AbstractUser):
         verbose_name = "User"
         verbose_name_plural = "Users"
 
-# Add this AFTER your CustomUser class in core/models.py
 
 class InternshipPlacement(models.Model):
     student = models.ForeignKey(
@@ -141,3 +140,67 @@ class WeeklyLog(models.Model):
     class Meta:
         ordering = ['placement', 'week_number']
         unique_together = ['placement', 'week_number']
+
+class EvaluationCriteria(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, help_text="Weight as decimal (e.g., 0.40 for 40%)")
+    created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='created_criteria')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.weight * 100}%)"
+    
+    class Meta:
+        verbose_name_plural = "Evaluation Criteria"
+        ordering = ['-weight']
+
+
+class Evaluation(models.Model):
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE, related_name='evaluations')
+    score = models.DecimalField(max_digits=5, decimal_places=2, help_text="Score out of 100")
+    comments = models.TextField(blank=True)
+    evaluated_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='evaluations_made')
+    evaluated_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.placement.student.username} - {self.criteria.name}: {self.score}"
+    
+    class Meta:
+        unique_together = ['placement', 'criteria']
+
+
+class OverallEvaluation(models.Model):
+    placement = models.OneToOneField(InternshipPlacement, on_delete=models.CASCADE, related_name='overall_evaluation')
+    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    grade = models.CharField(max_length=2, blank=True)
+    evaluator_comments = models.TextField(blank=True)
+    evaluated_at = models.DateTimeField(auto_now_add=True)
+    
+    def calculate_total_score(self):
+        """Calculate weighted total score"""
+        total = 0
+        for evaluation in self.placement.evaluations.all():
+            total += float(evaluation.score) * float(evaluation.criteria.weight)
+        self.total_score = total
+        
+        # Assign grade based on score
+        if total >= 80:
+            self.grade = 'A'
+        elif total >= 70:
+            self.grade = 'B'
+        elif total >= 60:
+            self.grade = 'C'
+        elif total >= 50:
+            self.grade = 'D'
+        else:
+            self.grade = 'F'
+        
+        self.save()
+        return total
+    
+    def __str__(self):
+        return f"{self.placement.student.username} - Score: {self.total_score}"
