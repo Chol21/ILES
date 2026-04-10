@@ -41,7 +41,7 @@ class InternshipPlacementViewSet(viewsets.ModelViewSet):
 class WeeklyLogViewSet(viewsets.ModelViewSet):
     queryset = WeeklyLog.objects.all()
     serializer_class = WeeklyLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated,IsSupervisorOrOwner]
     
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -59,6 +59,8 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         elif user.role == 'academic':
             return WeeklyLog.objects.filter(placement__academic_supervisor=user)
         return WeeklyLog.objects.none()
+
+    
     
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
