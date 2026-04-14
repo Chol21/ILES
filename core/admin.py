@@ -98,6 +98,6 @@ class OverallEvaluationAdmin(admin.ModelAdmin):
     list_display = ['placement', 'total_score', 'grade', 'evaluated_at']
     readonly_fields = ['total_score', 'grade']
 # Register the CustomUser model with the custom admin class
-admin.site.register(CustomUser, CustomUserAdmin)from django.contrib import admin
+admin.site.register(CustomUser, CustomUserAdmin)
 
 # Register your models here.

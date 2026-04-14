@@ -7,18 +7,24 @@ from .serializers import (
     CustomUserSerializer, InternshipPlacementSerializer, 
     WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer
 )
+from .permissions import IsSupervisorOrOwner
+
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get_queryset(self):
-        user = self.request.user
-        if user.role == 'admin':
-            return CustomUser.objects.all()
-        return CustomUser.objects.filter(id=user.id)
+        return CustomUser.objects.all()
 
+class StudentViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return CustomUser.objects.filter(role='student')
 
 class InternshipPlacementViewSet(viewsets.ModelViewSet):
     queryset = InternshipPlacement.objects.all()
@@ -27,6 +33,8 @@ class InternshipPlacementViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return InternshipPlacement.objects.none()
         if user.role == 'admin':
             return InternshipPlacement.objects.all()
         elif user.role == 'student':
@@ -50,6 +58,8 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return WeeklyLog.objects.none()
         if user.role == 'admin':
             return WeeklyLog.objects.all()
         elif user.role == 'student':
@@ -106,3 +116,37 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(log)
         return Response(serializer.data)
+
+
+class EvaluationCriteriaViewSet(viewsets.ModelViewSet):
+    queryset = EvaluationCriteria.objects.all()
+    serializer_class = EvaluationCriteriaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return EvaluationCriteria.objects.none()
+        if user.role == 'admin':
+            return EvaluationCriteria.objects.all()
+        return EvaluationCriteria.objects.filter(is_active=True)
+
+
+class EvaluationViewSet(viewsets.ModelViewSet):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Evaluation.objects.none()
+        if user.role == 'admin':
+            return Evaluation.objects.all()
+        elif user.role == 'student':
+            return Evaluation.objects.filter(placement__student=user)
+        elif user.role == 'workplace':
+            return Evaluation.objects.filter(placement__workplace_supervisor=user)
+        elif user.role == 'academic':
+            return Evaluation.objects.filter(placement__academic_supervisor=user)
+        return Evaluation.objects.none()

@@ -14,14 +14,14 @@ class CustomUser(AbstractUser):
         ('admin', 'Administrator'),
     )
     
-    # Role field - determines what the user can do in the system
+
     role = models.CharField(
         max_length=20, 
         choices=ROLE_CHOICES, 
         default='student'
     )
     
-    # Department field (for supervisors and admin)
+    
     department = models.CharField(
         max_length=150, 
         blank=True, 
