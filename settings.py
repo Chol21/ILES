@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'drf_spectacular',
+    'drf_yasg',
 
     # Our apps
     'core',
@@ -121,11 +121,4 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
-}
-
-# ─── API Docs ─────────────────────────────────────────────────────────────────
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'ILES API',
-    'DESCRIPTION': 'Internship Log and Evaluation System',
-    'VERSION': '1.0.0',
 }
