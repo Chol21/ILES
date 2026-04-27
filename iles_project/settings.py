@@ -129,3 +129,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Internship Log and Evaluation System',
     'VERSION': '1.0.0',
 }
+
+# ─── Email Configuration ──────────────────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'ILES System <noreply@iles.com>'

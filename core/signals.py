@@ -50,7 +50,7 @@ def notify_on_status_change(sender, instance, created, **kwargs):
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[supervisor.email],
-                fail_silently=False,
+                fail_silently=True,
             )
             print(f"[SIGNAL] Email sent to supervisor: {supervisor.email}")
 
@@ -66,7 +66,7 @@ def notify_on_status_change(sender, instance, created, **kwargs):
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[student_email],
-            fail_silently=False,
+            fail_silently=True,
         )
         print(f"[SIGNAL] Approval email sent to: {student_email}")
 
@@ -82,6 +82,6 @@ def notify_on_status_change(sender, instance, created, **kwargs):
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[student_email],
-            fail_silently=False,
+            fail_silently=True,
         )
         print(f"[SIGNAL] Rejection email sent to: {student_email}")
