@@ -21,10 +21,10 @@ const Login = () => {
       toast.success(`Welcome back, ${user.first_name || user.username}!`);
 
       // Redirect based on role
-      if (user.role === 'student') navigate('/student');
-      else if (user.role === 'workplace' || user.role === 'academic') navigate('/supervisor');
-      else if (user.role === 'admin') navigate('/admin');
-      else navigate('/');
+     if (user.role === 'student') navigate('/student');
+     else if (user.role === 'workplace' || user.role === 'academic') navigate('/supervisor');
+     else if (user.role === 'admin' || user.is_staff) navigate('/admin');
+     else navigate('/login');
     } catch (err) {
       toast.error('Invalid username or password. Please try again.');
     } finally {
