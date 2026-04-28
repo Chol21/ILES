@@ -28,7 +28,6 @@ from .permissions import IsAdminRole, IsSupervisorOrOwner
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
 class RegisterView(APIView):
-    """Public endpoint — anyone can register."""
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -45,7 +44,6 @@ class RegisterView(APIView):
 
 
 class LogoutView(APIView):
-    """Blacklist the refresh token on logout."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -67,20 +65,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # Admins see everyone; others only see themselves
         if user.role == 'admin' or user.is_staff:
             return CustomUser.objects.all()
         return CustomUser.objects.filter(pk=user.pk)
 
     @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):
-        """Return the currently logged-in user's profile."""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
 
 class StudentViewSet(viewsets.ReadOnlyModelViewSet):
-    """Read-only list of students — accessible to supervisors and admins."""
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -88,7 +83,6 @@ class StudentViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         if user.role in ['admin', 'workplace', 'academic'] or user.is_staff:
             return CustomUser.objects.filter(role='student')
-        # Students can only see themselves
         return CustomUser.objects.filter(pk=user.pk, role='student')
 
 
@@ -133,26 +127,25 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
-    log = self.get_object()
+        log = self.get_object()
 
-    # Deadline enforcement
-    from django.utils import timezone
-    today = timezone.now().date()
-    if log.placement.end_date < today:
-        return Response(
-            {'error': 'Submission deadline has passed. Your internship placement has ended.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        # Deadline enforcement
+        today = timezone.now().date()
+        if log.placement.end_date < today:
+            return Response(
+                {'error': 'Submission deadline has passed. Your internship placement has ended.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    if log.status not in ['draft', 'rejected']:
-        return Response(
-            {'error': 'Only draft or rejected logs can be submitted.'},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    log.status = 'submitted'
-    log.submitted_at = timezone.now()
-    log.save()
-    return Response(self.get_serializer(log).data)
+        if log.status not in ['draft', 'rejected']:
+            return Response(
+                {'error': 'Only draft or rejected logs can be submitted.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        log.status = 'submitted'
+        log.submitted_at = timezone.now()
+        log.save()
+        return Response(self.get_serializer(log).data)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -210,14 +203,18 @@ class EvaluationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        placement_id = self.request.query_params.get('placement')
+        qs = Evaluation.objects.all()
+        if placement_id:
+            qs = qs.filter(placement_id=placement_id)
         if user.role == 'admin' or user.is_staff:
-            return Evaluation.objects.all()
+            return qs
         elif user.role == 'student':
-            return Evaluation.objects.filter(placement__student=user)
+            return qs.filter(placement__student=user)
         elif user.role == 'workplace':
-            return Evaluation.objects.filter(placement__workplace_supervisor=user)
+            return qs.filter(placement__workplace_supervisor=user)
         elif user.role == 'academic':
-            return Evaluation.objects.filter(placement__academic_supervisor=user)
+            return qs.filter(placement__academic_supervisor=user)
         return Evaluation.objects.none()
 
 
@@ -239,7 +236,6 @@ class OverallEvaluationViewSet(viewsets.ModelViewSet):
         total_score = request.data.get('total_score')
         grade = request.data.get('grade')
 
-        # Check if one already exists
         existing = OverallEvaluation.objects.filter(placement_id=placement_id).first()
         if existing:
             existing.total_score = total_score
@@ -256,3 +252,9 @@ class OverallEvaluationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'], url_path='calculate')
+    def calculate(self, request, pk=None):
+        overall = self.get_object()
+        overall.calculate_total_score()
+        return Response(self.get_serializer(overall).data)
