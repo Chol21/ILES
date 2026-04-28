@@ -67,14 +67,19 @@ const StudentDashboard = () => {
   };
 
   const handleSubmitForReview = async (logId) => {
-    try {
-      await api.post(`/weekly-logs/${logId}/submit/`);
-      toast.success('Log submitted for review!');
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to submit log.');
+  try {
+    await api.post(`/weekly-logs/${logId}/submit/`);
+    toast.success('Log submitted for review!');
+    fetchData();
+  } catch (err) {
+    const errorMsg = err.response?.data?.error;
+    if (errorMsg?.includes('deadline')) {
+      toast.error('Submission deadline has passed — your placement has ended.');
+    } else {
+      toast.error(errorMsg || 'Failed to submit log.');
     }
-  };
+  }
+};
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -298,12 +303,26 @@ const StudentDashboard = () => {
                           Submit for Review
                         </button>
                       )}
+                     <td className="px-4 py-3">
+                       {(log.status === 'draft' || log.status === 'rejected') && (
+                        placement && new Date(placement.end_date) >= new Date() ? (
+                          <button
+                            onClick={() => handleSubmitForReview(log.id)}
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
+                          >
+                            Submit for Review
+                          </button>
+                        ) : (
+                          <span className="text-red-400 text-xs font-medium">Deadline passed</span>
+                        )
+                      )}
                       {log.status === 'submitted' && (
-                        <span className="text-gray-400 text-xs">Awaiting review</span>
+                       <span className="text-gray-400 text-xs">Awaiting review</span>
                       )}
                       {log.status === 'approved' && (
-                        <span className="text-green-500 text-xs">✓ Approved</span>
+                       <span className="text-green-500 text-xs">✓ Approved</span>
                       )}
+                     </td>
                     </td>
                   </tr>
                 ))}

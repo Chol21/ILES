@@ -133,16 +133,26 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
-        log = self.get_object()
-        if log.status not in ['draft', 'rejected']:
-            return Response(
-                {'error': 'Only draft or rejected logs can be submitted.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        log.status = 'submitted'
-        log.submitted_at = timezone.now()
-        log.save()
-        return Response(self.get_serializer(log).data)
+    log = self.get_object()
+
+    # Deadline enforcement
+    from django.utils import timezone
+    today = timezone.now().date()
+    if log.placement.end_date < today:
+        return Response(
+            {'error': 'Submission deadline has passed. Your internship placement has ended.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if log.status not in ['draft', 'rejected']:
+        return Response(
+            {'error': 'Only draft or rejected logs can be submitted.'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    log.status = 'submitted'
+    log.submitted_at = timezone.now()
+    log.save()
+    return Response(self.get_serializer(log).data)
 
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):

@@ -109,6 +109,10 @@ class WeeklyLog(models.Model):
         return self.status in ['draft', 'rejected']
 
     def can_submit(self):
+        from django.utils import timezone
+        today = timezone.now().date()
+        if self.placement.end_date < today:
+            return False
         return self.status in ['draft', 'rejected']
 
     def submit(self):
