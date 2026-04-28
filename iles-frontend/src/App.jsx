@@ -10,6 +10,7 @@ import Register from './pages/Register';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import SupervisorDashboard from './pages/dashboard/SupervisorDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
+import EvaluationPage from './pages/dashboard/EvaluationPage';
 
 function App() {
   return (
@@ -35,6 +36,11 @@ function App() {
           <Route path="/admin" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/evaluation" element={
+            <ProtectedRoute allowedRoles={['workplace', 'academic', 'admin']}>
+              <EvaluationPage />
             </ProtectedRoute>
           } />
 

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
 const SupervisorDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLog, setSelectedLog] = useState(null);
@@ -76,7 +78,6 @@ const SupervisorDashboard = () => {
   };
 
   const filteredLogs = filter === 'all' ? logs : logs.filter(l => l.status === filter);
-
   const counts = {
     all: logs.length,
     submitted: logs.filter(l => l.status === 'submitted').length,
@@ -107,6 +108,12 @@ const SupervisorDashboard = () => {
             {user?.role === 'workplace' ? 'Workplace Supervisor' : 'Academic Supervisor'}
           </span>
           <button
+            onClick={() => navigate('/evaluation')}
+            className="bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg text-sm transition"
+          >
+            Evaluate Students
+          </button>
+          <button
             onClick={logout}
             className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
           >
@@ -119,12 +126,8 @@ const SupervisorDashboard = () => {
 
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Welcome, {user?.first_name}!
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">
-            Review and provide feedback on student weekly logs.
-          </p>
+          <h2 className="text-2xl font-bold text-gray-800">Welcome, {user?.first_name}!</h2>
+          <p className="text-gray-500 text-sm mt-1">Review and provide feedback on student weekly logs.</p>
         </div>
 
         {/* Stats Cards */}
@@ -221,7 +224,6 @@ const SupervisorDashboard = () => {
               Review — Week {selectedLog.week_number}
             </h3>
             <p className="text-sm text-gray-500 mb-4">Student: {selectedLog.student_name}</p>
-
             <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-3 text-sm">
               <div>
                 <p className="font-medium text-gray-600">Activities</p>
@@ -240,7 +242,6 @@ const SupervisorDashboard = () => {
                 </div>
               )}
             </div>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Feedback <span className="text-red-400">(required for rejection)</span>
@@ -253,7 +254,6 @@ const SupervisorDashboard = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-
             <div className="flex gap-3">
               <button
                 onClick={() => handleApprove(selectedLog.id)}
