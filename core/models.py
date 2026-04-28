@@ -146,17 +146,28 @@ class WeeklyLog(models.Model):
 
 class EvaluationCriteria(models.Model):
     name = models.CharField(max_length=255)
-    weight = models.DecimalField(max_digits=5, decimal_places=2)
+    description = models.TextField(blank=True)
+    weight = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        help_text="Weight as decimal (e.g., 0.40 for 40%)"
+    )
+    created_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_criteria'
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.weight * 100}%)"
 
     class Meta:
         verbose_name_plural = "Evaluation Criteria"
-        ordering = ['name']
-
+        ordering = ['-weight']
 
 class Evaluation(models.Model):
     placement = models.ForeignKey(
