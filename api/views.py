@@ -222,11 +222,27 @@ class OverallEvaluationViewSet(viewsets.ModelViewSet):
             return OverallEvaluation.objects.all()
         elif user.role == 'student':
             return OverallEvaluation.objects.filter(placement__student=user)
-        return OverallEvaluation.objects.none()
+        return OverallEvaluation.objects.all()
 
-    @action(detail=True, methods=['post'], url_path='calculate')
-    def calculate(self, request, pk=None):
-        """Trigger weighted score calculation and grade assignment."""
-        overall = self.get_object()
-        overall.calculate_total_score()
-        return Response(self.get_serializer(overall).data)
+    def create(self, request, *args, **kwargs):
+        placement_id = request.data.get('placement')
+        total_score = request.data.get('total_score')
+        grade = request.data.get('grade')
+
+        # Check if one already exists
+        existing = OverallEvaluation.objects.filter(placement_id=placement_id).first()
+        if existing:
+            existing.total_score = total_score
+            existing.grade = grade
+            existing.save()
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(data={
+            'placement': placement_id,
+            'total_score': total_score,
+            'grade': grade,
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

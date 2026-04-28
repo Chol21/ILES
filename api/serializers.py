@@ -138,9 +138,11 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
 
 class OverallEvaluationSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='placement.student.username', read_only=True)
+    student_name = serializers.CharField(
+        source='placement.student.username', read_only=True
+    )
 
     class Meta:
         model = OverallEvaluation
         fields = '__all__'
-        read_only_fields = ['total_score', 'grade', 'evaluated_at']
+        read_only_fields = ['evaluated_at']  # removed total_score and grade
