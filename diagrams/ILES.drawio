@@ -1,0 +1,69 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="S0lUolG0u2FeONLTHxcP">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-1" edge="1" parent="1" source="5M_O4PeYqzJ_0VWySF6f-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;" target="5M_O4PeYqzJ_0VWySF6f-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-2" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.316;entryY=0.042;entryDx=0;entryDy=0;entryPerimeter=0;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="310" />
+              <mxPoint x="380" y="310" />
+            </Array>
+            <mxPoint x="130" y="289.92" as="sourcePoint" />
+            <mxPoint x="380.03999999999996" y="360.00000000000006" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#09555B;strokeColor=#BAC8D3;fontColor=#EEEEEE;" value="CustomUser&lt;div&gt;------------------------------&lt;/div&gt;&lt;div&gt;User_ID(PK)&lt;/div&gt;&lt;div&gt;Username&lt;/div&gt;&lt;div&gt;Password&lt;/div&gt;&lt;div&gt;Email&lt;/div&gt;&lt;div&gt;First_Name&lt;/div&gt;&lt;div&gt;Last_Name&lt;/div&gt;&lt;div&gt;Role&lt;/div&gt;&lt;div&gt;Department&lt;/div&gt;&lt;div&gt;Staff_Number&lt;/div&gt;&lt;div&gt;Student_Number&lt;/div&gt;&lt;div&gt;Phone_Number&lt;/div&gt;" vertex="1">
+          <mxGeometry height="261.25" width="200" x="30" y="18.75" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#008a00;strokeColor=#005700;fontColor=#ffffff;" value="Weekly_Log&lt;div&gt;------------------------------&lt;/div&gt;&lt;div&gt;Log_ID(PK)&lt;/div&gt;&lt;div&gt;Placement_ID(FK)&lt;/div&gt;&lt;div&gt;Week_Number&lt;/div&gt;&lt;div&gt;Week_Ending_Date&lt;/div&gt;&lt;div&gt;Activities&lt;/div&gt;&lt;div&gt;Key_Learnings&lt;/div&gt;&lt;div&gt;Challenges&lt;/div&gt;&lt;div&gt;Status&lt;/div&gt;&lt;div&gt;Created_At&lt;/div&gt;&lt;div&gt;Updated_At&lt;/div&gt;&lt;div&gt;Submitted_At&lt;/div&gt;&lt;div&gt;Reviewed_At&lt;/div&gt;" vertex="1">
+          <mxGeometry height="265" width="200" x="600" y="19.38" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-5" edge="1" parent="1" source="5M_O4PeYqzJ_0VWySF6f-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="600" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-6" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;" target="5M_O4PeYqzJ_0VWySF6f-11">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="425" y="305" />
+              <mxPoint x="700" y="305" />
+            </Array>
+            <mxPoint x="425" y="284.38" as="sourcePoint" />
+            <mxPoint x="520" y="355" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#008a00;strokeColor=#005700;fontColor=#ffffff;" value="Internship Placement&lt;div&gt;-----------------------------&lt;/div&gt;&lt;div&gt;Placement_ID(PK)&lt;/div&gt;&lt;div&gt;Student_ID(FK)&lt;/div&gt;&lt;div&gt;Company_Name&lt;/div&gt;&lt;div&gt;Start_Date&lt;/div&gt;&lt;div&gt;End_Date&lt;/div&gt;&lt;div&gt;Workplace_Supervisor_ID&lt;/div&gt;&lt;div&gt;Academic_Supervisor_ID&lt;/div&gt;&lt;div&gt;Is_Active&lt;/div&gt;&lt;div&gt;Created_At&lt;/div&gt;&lt;div&gt;Updated_At&lt;/div&gt;" vertex="1">
+          <mxGeometry height="260" width="200" x="325" y="19.38" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-8" edge="1" parent="1" source="5M_O4PeYqzJ_0VWySF6f-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;" target="5M_O4PeYqzJ_0VWySF6f-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#fa6800;strokeColor=#C73500;fontColor=#000000;" value="Evaluation Criteria&lt;div&gt;---------------------------&lt;/div&gt;&lt;div&gt;Criteria_ID(PK)&lt;/div&gt;&lt;div&gt;Name&lt;/div&gt;&lt;div&gt;Description&lt;/div&gt;&lt;div&gt;Weight&lt;/div&gt;&lt;div&gt;Created_By(FK)&lt;/div&gt;&lt;div&gt;Is_Active&lt;/div&gt;&lt;div&gt;Created_At&lt;/div&gt;&lt;div&gt;Updated_At&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="190" x="30" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#fa6800;strokeColor=#C73500;fontColor=#000000;" value="Evaluation&lt;div&gt;------------------------&lt;/div&gt;&lt;div&gt;Evaluation_ID(PK)&lt;/div&gt;&lt;div&gt;Placement_ID(FK)&lt;/div&gt;&lt;div&gt;Criteria_ID(FK)&lt;/div&gt;&lt;div&gt;Score&lt;/div&gt;&lt;div&gt;Comments&lt;/div&gt;&lt;div&gt;Evaluated_By(FK)&lt;/div&gt;&lt;div&gt;Evaluated_At&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="190" x="320" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;labelBackgroundColor=none;fillColor=#fa6800;strokeColor=#C73500;fontColor=#000000;" value="Overall Evaluation&lt;div&gt;----------------------------&lt;/div&gt;&lt;div&gt;Overall_Evaluation_ID(PK)&lt;/div&gt;&lt;div&gt;Placement_ID(FK)&lt;/div&gt;&lt;div&gt;Total_Score&lt;/div&gt;&lt;div&gt;Grade&lt;/div&gt;&lt;div&gt;Evaluator_Comments&lt;/div&gt;&lt;div&gt;Evaluated_At&lt;/div&gt;" vertex="1">
+          <mxGeometry height="240" width="200" x="600" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-12" edge="1" parent="1" source="5M_O4PeYqzJ_0VWySF6f-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5M_O4PeYqzJ_0VWySF6f-13" edge="1" parent="1" source="5M_O4PeYqzJ_0VWySF6f-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;labelBackgroundColor=none;strokeColor=#0B4D6A;fontColor=default;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="130" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
