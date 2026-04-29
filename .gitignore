@@ -3,3 +3,9 @@ __pycache__/
 venv/ 
 db.sqlite3 
 .vscode/ 
+# Environment variables
+.env
+*.env
+
+# Database
+db.sqlite3
