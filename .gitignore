@@ -9,3 +9,15 @@ db.sqlite3
 
 # Database
 db.sqlite3
+
+# Static files
+staticfiles/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+iles-frontend/dist/
