@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [placements, setPlacements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({
     student: '',
     company_name: '',
@@ -83,6 +86,11 @@ const AdminDashboard = () => {
   const workplaceSupervisors = supervisors.filter(s => s.role === 'workplace');
   const academicSupervisors = supervisors.filter(s => s.role === 'academic');
 
+  const filteredPlacements = placements.filter(p =>
+    p.student_name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.company_name?.toLowerCase().includes(search.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -105,6 +113,12 @@ const AdminDashboard = () => {
           <span className="text-indigo-200 text-xs bg-indigo-600 px-2 py-1 rounded-full">
             Administrator
           </span>
+          <button
+            onClick={() => navigate('/evaluation')}
+            className="bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg text-sm transition"
+          >
+            Evaluations
+          </button>
           <button
             onClick={logout}
             className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
@@ -156,7 +170,9 @@ const AdminDashboard = () => {
             <form onSubmit={handleCreatePlacement} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Student <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Student <span className="text-red-400">*</span>
+                  </label>
                   <select
                     name="student"
                     value={form.student}
@@ -173,7 +189,9 @@ const AdminDashboard = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Company Name <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Company Name <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="text"
                     name="company_name"
@@ -185,10 +203,11 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Start Date <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Start Date <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="date"
                     name="start_date"
@@ -199,7 +218,9 @@ const AdminDashboard = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">End Date <span className="text-red-400">*</span></label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    End Date <span className="text-red-400">*</span>
+                  </label>
                   <input
                     type="date"
                     name="end_date"
@@ -210,7 +231,6 @@ const AdminDashboard = () => {
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">Workplace Supervisor</label>
@@ -245,7 +265,6 @@ const AdminDashboard = () => {
                   </select>
                 </div>
               </div>
-
               <div className="flex gap-3">
                 <button
                   type="submit"
@@ -266,10 +285,21 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* Search Bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search by student or company..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+
         {/* Placements Table */}
-        {placements.length === 0 ? (
+        {filteredPlacements.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
-            No placements yet. Click <strong>+ New Placement</strong> to assign a student.
+            {search ? `No placements found for "${search}".` : 'No placements yet. Click + New Placement to assign a student.'}
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -286,7 +316,7 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {placements.map((p) => (
+                {filteredPlacements.map((p) => (
                   <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium text-gray-800">{p.student_name}</td>
                     <td className="px-4 py-3 text-gray-600">{p.company_name}</td>

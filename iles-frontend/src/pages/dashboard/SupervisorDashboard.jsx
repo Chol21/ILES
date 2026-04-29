@@ -13,6 +13,7 @@ const SupervisorDashboard = () => {
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     fetchLogs();
@@ -77,7 +78,10 @@ const SupervisorDashboard = () => {
     );
   };
 
-  const filteredLogs = filter === 'all' ? logs : logs.filter(l => l.status === filter);
+  const filteredLogs = logs
+    .filter(l => filter === 'all' || l.status === filter)
+    .filter(l => l.student_name?.toLowerCase().includes(search.toLowerCase()));
+
   const counts = {
     all: logs.length,
     submitted: logs.filter(l => l.status === 'submitted').length,
@@ -145,6 +149,17 @@ const SupervisorDashboard = () => {
           ))}
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search by student name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          />
+        </div>
+
         {/* Filter Tabs */}
         <div className="flex gap-2 mb-4">
           {['all', 'submitted', 'approved', 'rejected'].map((tab) => (
@@ -170,7 +185,7 @@ const SupervisorDashboard = () => {
         {/* Logs Table */}
         {filteredLogs.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
-            No logs found for this filter.
+            {search ? `No logs found for "${search}".` : 'No logs found for this filter.'}
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
