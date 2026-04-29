@@ -3,6 +3,105 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
+// ─── Evaluation Results Component ─────────────────────────────────────────────
+
+const EvaluationResults = ({ placementId }) => {
+  const [overall, setOverall] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!placementId) { setLoading(false); return; }
+    fetchResults();
+  }, [placementId]);
+
+  const fetchResults = async () => {
+    try {
+      const [overallRes, evalsRes] = await Promise.all([
+        api.get('/overall-evaluations/'),
+        api.get(`/evaluations/?placement=${placementId}`),
+      ]);
+      setOverall(overallRes.data.find(o => o.placement === placementId) || null);
+      setEvaluations(evalsRes.data);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGradeStyle = (grade) => {
+    const styles = {
+      A: 'bg-green-100 text-green-700 border-green-200',
+      B: 'bg-blue-100 text-blue-700 border-blue-200',
+      C: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+      D: 'bg-orange-100 text-orange-700 border-orange-200',
+      F: 'bg-red-100 text-red-700 border-red-200',
+    };
+    return styles[grade] || 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
+  if (loading) return null;
+
+  if (!overall) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-6 text-center text-gray-400 text-sm">
+        No evaluation results yet. Your supervisor will evaluate you at the end of your internship.
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+      {/* Overall Score */}
+      <div className="flex items-center gap-6 mb-6 p-4 bg-gray-50 rounded-xl">
+        <div className="text-center">
+          <p className="text-4xl font-bold text-indigo-700">{overall.total_score}</p>
+          <p className="text-xs text-gray-400 mt-1">Total Score / 100</p>
+        </div>
+        <div className={`px-6 py-3 rounded-xl border text-center font-bold text-3xl ${getGradeStyle(overall.grade)}`}>
+          {overall.grade}
+          <p className="text-sm font-normal mt-0.5">
+            {overall.grade === 'A' ? 'Distinction' :
+             overall.grade === 'B' ? 'Merit' :
+             overall.grade === 'C' ? 'Pass' :
+             overall.grade === 'D' ? 'Borderline' : 'Fail'}
+          </p>
+        </div>
+        <div className="flex-1 text-sm text-gray-500">
+          <p className="font-medium text-gray-700 mb-1">Evaluated on:</p>
+          <p>{new Date(overall.evaluated_at).toLocaleDateString()}</p>
+        </div>
+      </div>
+
+      {/* Score Breakdown */}
+      {evaluations.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-gray-700 mb-3 text-sm">Score Breakdown</h4>
+          <div className="space-y-3">
+            {evaluations.map((ev) => (
+              <div key={ev.id} className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 w-40">{ev.criteria_name}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-2.5">
+                  <div
+                    className="bg-indigo-500 h-2.5 rounded-full"
+                    style={{ width: `${ev.score}%` }}
+                  />
+                </div>
+                <span className="text-sm font-semibold text-gray-700 w-12 text-right">
+                  {ev.score}/100
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Student Dashboard ────────────────────────────────────────────────────────
+
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const [placement, setPlacement] = useState(null);
@@ -67,19 +166,21 @@ const StudentDashboard = () => {
   };
 
   const handleSubmitForReview = async (logId) => {
-  try {
-    await api.post(`/weekly-logs/${logId}/submit/`);
-    toast.success('Log submitted for review!');
-    fetchData();
-  } catch (err) {
-    const errorMsg = err.response?.data?.error;
-    if (errorMsg?.includes('deadline')) {
-      toast.error('Submission deadline has passed — your placement has ended.');
-    } else {
-      toast.error(errorMsg || 'Failed to submit log.');
+    try {
+      await api.post(`/weekly-logs/${logId}/submit/`);
+      toast.success('Log submitted for review!');
+      fetchData();
+    } catch (err) {
+      const errorMsg = err.response?.data?.error;
+      if (errorMsg?.includes('deadline')) {
+        toast.error('Submission deadline has passed — your placement has ended.');
+      } else {
+        toast.error(errorMsg || 'Failed to submit log.');
+      }
     }
-  }
-};
+  };
+
+  const isDeadlinePassed = placement && new Date(placement.end_date) < new Date();
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -113,9 +214,7 @@ const StudentDashboard = () => {
           <p className="text-indigo-200 text-xs">Student Portal</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm">
-            {user?.first_name} {user?.last_name}
-          </span>
+          <span className="text-sm">{user?.first_name} {user?.last_name}</span>
           <button
             onClick={logout}
             className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
@@ -129,9 +228,7 @@ const StudentDashboard = () => {
 
         {/* Welcome */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Welcome, {user?.first_name}!
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800">Welcome, {user?.first_name}!</h2>
           <p className="text-gray-500 text-sm mt-1">
             Manage your internship logs and track your progress.
           </p>
@@ -162,6 +259,11 @@ const StudentDashboard = () => {
                   </span>
                 </div>
               </div>
+              {isDeadlinePassed && (
+                <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm text-red-600 font-medium">
+                  ⚠️ Your internship placement has ended. Log submission is closed.
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-yellow-700 text-sm font-medium">
@@ -173,12 +275,14 @@ const StudentDashboard = () => {
         {/* Weekly Logs Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold text-gray-800">Weekly Logs</h3>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            {showForm ? 'Cancel' : '+ New Log'}
-          </button>
+          {!isDeadlinePassed && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            >
+              {showForm ? 'Cancel' : '+ New Log'}
+            </button>
+          )}
         </div>
 
         {/* New Log Form */}
@@ -296,33 +400,23 @@ const StudentDashboard = () => {
                     </td>
                     <td className="px-4 py-3">
                       {(log.status === 'draft' || log.status === 'rejected') && (
-                        <button
-                          onClick={() => handleSubmitForReview(log.id)}
-                          className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
-                        >
-                          Submit for Review
-                        </button>
-                      )}
-                     <td className="px-4 py-3">
-                       {(log.status === 'draft' || log.status === 'rejected') && (
-                        placement && new Date(placement.end_date) >= new Date() ? (
+                        isDeadlinePassed ? (
+                          <span className="text-red-400 text-xs font-medium">Deadline passed</span>
+                        ) : (
                           <button
                             onClick={() => handleSubmitForReview(log.id)}
                             className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
                           >
                             Submit for Review
                           </button>
-                        ) : (
-                          <span className="text-red-400 text-xs font-medium">Deadline passed</span>
                         )
                       )}
                       {log.status === 'submitted' && (
-                       <span className="text-gray-400 text-xs">Awaiting review</span>
+                        <span className="text-gray-400 text-xs">Awaiting review</span>
                       )}
                       {log.status === 'approved' && (
-                       <span className="text-green-500 text-xs">✓ Approved</span>
+                        <span className="text-green-500 text-xs">✓ Approved</span>
                       )}
-                     </td>
                     </td>
                   </tr>
                 ))}
@@ -330,6 +424,13 @@ const StudentDashboard = () => {
             </table>
           </div>
         )}
+
+        {/* Evaluation Results */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">My Evaluation Results</h3>
+          <EvaluationResults placementId={placement?.id} />
+        </div>
+
       </div>
     </div>
   );
