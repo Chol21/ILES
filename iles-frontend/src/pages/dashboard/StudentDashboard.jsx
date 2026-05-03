@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
+import StatusBadge from '../../components/statusbadge';
 
 // ─── Evaluation Results Component ─────────────────────────────────────────────
 
@@ -182,20 +183,7 @@ const StudentDashboard = () => {
 
   const isDeadlinePassed = placement && new Date(placement.end_date) < new Date();
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      draft: 'bg-gray-100 text-gray-600',
-      submitted: 'bg-blue-100 text-blue-600',
-      approved: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-600',
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || 'bg-gray-100'}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
-
+  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -394,7 +382,7 @@ const StudentDashboard = () => {
                   <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">Week {log.week_number}</td>
                     <td className="px-4 py-3 text-gray-600">{log.week_ending_date}</td>
-                    <td className="px-4 py-3">{getStatusBadge(log.status)}</td>
+                    <td className="px-4 py-3"><statusbadge status={log.status} /></td>
                     <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
                       {log.supervisor_feedback || '—'}
                     </td>
