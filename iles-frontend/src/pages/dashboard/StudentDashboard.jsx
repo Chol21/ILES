@@ -3,6 +3,13 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 import StatusBadge from '../../components/statusbadge';
+import {
+  getMyPlacement,
+  getMyLogs,
+  createLog,
+  updateLog,
+  submitLogForReview,
+} from '../../services/studentService';
 
 // ─── Evaluation Results Component ─────────────────────────────────────────────
 
@@ -110,6 +117,7 @@ const StudentDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [editingLog, setEditingLog] = useState(null);
   const [form, setForm] = useState({
     week_number: '',
     week_ending_date: '',
@@ -143,23 +151,49 @@ const StudentDashboard = () => {
 
   const handleSubmitLog = async (e) => {
     e.preventDefault();
+
     if (!placement) {
       toast.error('You have no active placement. Contact your administrator.');
       return;
     }
+
     setSubmitting(true);
+
     try {
-      await api.post('/weekly-logs/', { ...form, placement: placement.id });
-      toast.success('Weekly log saved as draft!');
+      if (editingLog) {
+        // --- Update Existing Log ---
+        await api.put(`/weekly-logs/${editingLog.id}/`, { 
+          ...form, 
+          placement: placement.id 
+        });
+        toast.success('Weekly log updated successfully!');
+      } else {
+        // --- Create New Log ---
+        await api.post('/weekly-logs/', { 
+          ...form, 
+          placement: placement.id 
+        });
+        toast.success('Weekly log saved as draft!');
+      }
+
+      // --- Success Cleanup ---
       setShowForm(false);
-      setForm({ week_number: '', week_ending_date: '', activities: '', key_learnings: '', challenges: '' });
+      setEditingLog(null);
+      setForm({ 
+        week_number: '', 
+        week_ending_date: '', 
+        activities: '', 
+        key_learnings: '', 
+        challenges: '' 
+      });
       fetchData();
+
     } catch (err) {
       const errors = err.response?.data;
       if (errors) {
         Object.values(errors).forEach((msg) => toast.error(String(msg)));
       } else {
-        toast.error('Failed to save log.');
+        toast.error(editingLog ? 'Failed to update log.' : 'Failed to save log.');
       }
     } finally {
       setSubmitting(false);
@@ -181,9 +215,20 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleEditClick = (log) => {
+    setEditingLog(log);
+    setForm({
+      week_number: log.week_number,
+      week_ending_date: log.week_ending_date,
+      activities: log.activities,
+      key_learnings: log.key_learnings || '',
+      challenges: log.challenges || '',
+    });
+    setShowForm(true);
+  };
+
   const isDeadlinePassed = placement && new Date(placement.end_date) < new Date();
 
-  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -194,7 +239,6 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       {/* Navbar */}
       <nav className="bg-indigo-700 text-white px-6 py-4 flex justify-between items-center shadow">
         <div>
@@ -213,7 +257,6 @@ const StudentDashboard = () => {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-
         {/* Welcome */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Welcome, {user?.first_name}!</h2>
@@ -265,7 +308,10 @@ const StudentDashboard = () => {
           <h3 className="text-lg font-bold text-gray-800">Weekly Logs</h3>
           {!isDeadlinePassed && (
             <button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                if (showForm) setEditingLog(null);
+                setShowForm(!showForm);
+              }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
             >
               {showForm ? 'Cancel' : '+ New Log'}
@@ -273,10 +319,12 @@ const StudentDashboard = () => {
           )}
         </div>
 
-        {/* New Log Form */}
+        {/* Log Form */}
         {showForm && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h4 className="font-semibold text-gray-700 mb-4">New Weekly Log</h4>
+            <h4 className="font-semibold text-gray-700 mb-4">
+              {editingLog ? `Edit Week ${editingLog.week_number} Log` : 'New Weekly Log'}
+            </h4>
             <form onSubmit={handleSubmitLog} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -346,11 +394,11 @@ const StudentDashboard = () => {
                   disabled={submitting}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
                 >
-                  {submitting ? 'Saving...' : 'Save as Draft'}
+                  {submitting ? 'Saving...' : editingLog ? 'Update Log' : 'Save as Draft'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => { setShowForm(false); setEditingLog(null); }}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium transition"
                 >
                   Cancel
@@ -382,7 +430,7 @@ const StudentDashboard = () => {
                   <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">Week {log.week_number}</td>
                     <td className="px-4 py-3 text-gray-600">{log.week_ending_date}</td>
-                    <td className="px-4 py-3"><statusbadge status={log.status} /></td>
+                    <td className="px-4 py-3"><StatusBadge status={log.status} /></td>
                     <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
                       {log.supervisor_feedback || '—'}
                     </td>
@@ -391,17 +439,27 @@ const StudentDashboard = () => {
                         isDeadlinePassed ? (
                           <span className="text-red-400 text-xs font-medium">Deadline passed</span>
                         ) : (
-                          <button
-                            onClick={() => handleSubmitForReview(log.id)}
-                            className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
-                          >
-                            Submit for Review
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditClick(log)}
+                              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium transition"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleSubmitForReview(log.id)}
+                              className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
+                            >
+                              Submit for Review
+                            </button>
+                          </div>
                         )
                       )}
+
                       {log.status === 'submitted' && (
                         <span className="text-gray-400 text-xs">Awaiting review</span>
                       )}
+
                       {log.status === 'approved' && (
                         <span className="text-green-500 text-xs">✓ Approved</span>
                       )}
@@ -418,7 +476,6 @@ const StudentDashboard = () => {
           <h3 className="text-lg font-bold text-gray-800 mb-4">My Evaluation Results</h3>
           <EvaluationResults placementId={placement?.id} />
         </div>
-
       </div>
     </div>
   );
