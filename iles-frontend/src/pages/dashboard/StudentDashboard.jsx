@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
-import api from '../../api/axios';
-import StatusBadge from '../../components/statusbadge';
 import {
   getMyPlacement,
   getMyLogs,
@@ -10,6 +8,9 @@ import {
   updateLog,
   submitLogForReview,
 } from '../../services/studentService';
+import StatusBadge from '../../components/statusbadge';
+import ProgressTracker from '../../components/ProgressTracker';
+import ProfileCard from '../../components/ProfileCard';
 
 // ─── Evaluation Results Component ─────────────────────────────────────────────
 
@@ -17,9 +18,13 @@ const EvaluationResults = ({ placementId }) => {
   const [overall, setOverall] = useState(null);
   const [evaluations, setEvaluations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedLogId, setExpandedLogId] = useState(null);
 
   useEffect(() => {
-    if (!placementId) { setLoading(false); return; }
+    if (!placementId) {
+      setLoading(false);
+      return;
+    }
     fetchResults();
   }, [placementId]);
 
@@ -29,13 +34,17 @@ const EvaluationResults = ({ placementId }) => {
         api.get('/overall-evaluations/'),
         api.get(`/evaluations/?placement=${placementId}`),
       ]);
-      setOverall(overallRes.data.find(o => o.placement === placementId) || null);
+      setOverall(overallRes.data.find((o) => o.placement === placementId) || null);
       setEvaluations(evalsRes.data);
     } catch {
       // silently fail
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleExpand = (logId) => {
+    setExpandedLogId((prev) => (prev === logId ? null : logId));
   };
 
   const getGradeStyle = (grade) => {
@@ -67,13 +76,22 @@ const EvaluationResults = ({ placementId }) => {
           <p className="text-4xl font-bold text-indigo-700">{overall.total_score}</p>
           <p className="text-xs text-gray-400 mt-1">Total Score / 100</p>
         </div>
-        <div className={`px-6 py-3 rounded-xl border text-center font-bold text-3xl ${getGradeStyle(overall.grade)}`}>
+        <div
+          className={`px-6 py-3 rounded-xl border text-center font-bold text-3xl ${getGradeStyle(
+            overall.grade
+          )}`}
+        >
           {overall.grade}
           <p className="text-sm font-normal mt-0.5">
-            {overall.grade === 'A' ? 'Distinction' :
-             overall.grade === 'B' ? 'Merit' :
-             overall.grade === 'C' ? 'Pass' :
-             overall.grade === 'D' ? 'Borderline' : 'Fail'}
+            {overall.grade === 'A'
+              ? 'Distinction'
+              : overall.grade === 'B'
+              ? 'Merit'
+              : overall.grade === 'C'
+              ? 'Pass'
+              : overall.grade === 'D'
+              ? 'Borderline'
+              : 'Fail'}
           </p>
         </div>
         <div className="flex-1 text-sm text-gray-500">
@@ -118,6 +136,7 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [editingLog, setEditingLog] = useState(null);
+  const [expandedLogId, setExpandedLogId] = useState(null);
   const [form, setForm] = useState({
     week_number: '',
     week_ending_date: '',
@@ -132,12 +151,12 @@ const StudentDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [placementRes, logsRes] = await Promise.all([
-        api.get('/placements/'),
-        api.get('/weekly-logs/'),
+      const [placementData, logsData] = await Promise.all([
+        getMyPlacement(),
+        getMyLogs(),
       ]);
-      setPlacement(placementRes.data[0] || null);
-      setLogs(logsRes.data);
+      setPlacement(placementData);
+      setLogs(logsData);
     } catch {
       toast.error('Failed to load dashboard data.');
     } finally {
@@ -161,33 +180,23 @@ const StudentDashboard = () => {
 
     try {
       if (editingLog) {
-        // --- Update Existing Log ---
-        await api.put(`/weekly-logs/${editingLog.id}/`, { 
-          ...form, 
-          placement: placement.id 
-        });
-        toast.success('Weekly log updated successfully!');
+        await updateLog(editingLog.id, form);
+        toast.success('Weekly log updated!');
       } else {
-        // --- Create New Log ---
-        await api.post('/weekly-logs/', { 
-          ...form, 
-          placement: placement.id 
-        });
+        await createLog(placement.id, form);
         toast.success('Weekly log saved as draft!');
       }
 
-      // --- Success Cleanup ---
       setShowForm(false);
       setEditingLog(null);
-      setForm({ 
-        week_number: '', 
-        week_ending_date: '', 
-        activities: '', 
-        key_learnings: '', 
-        challenges: '' 
+      setForm({
+        week_number: '',
+        week_ending_date: '',
+        activities: '',
+        key_learnings: '',
+        challenges: '',
       });
       fetchData();
-
     } catch (err) {
       const errors = err.response?.data;
       if (errors) {
@@ -202,7 +211,7 @@ const StudentDashboard = () => {
 
   const handleSubmitForReview = async (logId) => {
     try {
-      await api.post(`/weekly-logs/${logId}/submit/`);
+      await submitLogForReview(logId);
       toast.success('Log submitted for review!');
       fetchData();
     } catch (err) {
@@ -227,6 +236,10 @@ const StudentDashboard = () => {
     setShowForm(true);
   };
 
+  const toggleExpand = (logId) => {
+    setExpandedLogId((prev) => (prev === logId ? null : logId));
+  };
+
   const isDeadlinePassed = placement && new Date(placement.end_date) < new Date();
 
   if (loading) {
@@ -246,7 +259,9 @@ const StudentDashboard = () => {
           <p className="text-indigo-200 text-xs">Student Portal</p>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm">{user?.first_name} {user?.last_name}</span>
+          <span className="text-sm">
+            {user?.first_name} {user?.last_name}
+          </span>
           <button
             onClick={logout}
             className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
@@ -266,7 +281,11 @@ const StudentDashboard = () => {
         </div>
 
         {/* Placement Card */}
-        <div className={`rounded-xl p-5 mb-6 shadow-sm border ${placement ? 'bg-white border-gray-200' : 'bg-yellow-50 border-yellow-200'}`}>
+        <div
+          className={`rounded-xl p-5 mb-6 shadow-sm border ${
+            placement ? 'bg-white border-gray-200' : 'bg-yellow-50 border-yellow-200'
+          }`}
+        >
           {placement ? (
             <div>
               <h3 className="font-semibold text-gray-700 mb-3">Your Internship Placement</h3>
@@ -285,7 +304,11 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <p className="text-gray-400">Status</p>
-                  <span className={`font-medium ${placement.is_active ? 'text-green-600' : 'text-red-500'}`}>
+                  <span
+                    className={`font-medium ${
+                      placement.is_active ? 'text-green-600' : 'text-red-500'
+                    }`}
+                  >
                     {placement.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -302,6 +325,8 @@ const StudentDashboard = () => {
             </p>
           )}
         </div>
+
+        <ProgressTracker logs={logs} placement={placement} />
 
         {/* Weekly Logs Header */}
         <div className="flex justify-between items-center mb-4">
@@ -328,7 +353,9 @@ const StudentDashboard = () => {
             <form onSubmit={handleSubmitLog} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Week Number</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Week Number
+                  </label>
                   <input
                     type="number"
                     name="week_number"
@@ -341,7 +368,9 @@ const StudentDashboard = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Week Ending Date</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Week Ending Date
+                  </label>
                   <input
                     type="date"
                     name="week_ending_date"
@@ -367,7 +396,9 @@ const StudentDashboard = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Key Learnings</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Key Learnings
+                </label>
                 <textarea
                   name="key_learnings"
                   value={form.key_learnings}
@@ -378,7 +409,9 @@ const StudentDashboard = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Challenges</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Challenges
+                </label>
                 <textarea
                   name="challenges"
                   value={form.challenges}
@@ -398,7 +431,10 @@ const StudentDashboard = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowForm(false); setEditingLog(null); }}
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingLog(null);
+                  }}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium transition"
                 >
                   Cancel
@@ -427,44 +463,107 @@ const StudentDashboard = () => {
               </thead>
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">Week {log.week_number}</td>
-                    <td className="px-4 py-3 text-gray-600">{log.week_ending_date}</td>
-                    <td className="px-4 py-3"><StatusBadge status={log.status} /></td>
-                    <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
-                      {log.supervisor_feedback || '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      {(log.status === 'draft' || log.status === 'rejected') && (
-                        isDeadlinePassed ? (
-                          <span className="text-red-400 text-xs font-medium">Deadline passed</span>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEditClick(log)}
-                              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium transition"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleSubmitForReview(log.id)}
-                              className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
-                            >
-                              Submit for Review
-                            </button>
+                  <>
+                    <tr key={log.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      {/* Week */}
+                      <td className="px-4 py-3 font-medium">Week {log.week_number}</td>
+
+                      {/* Week Ending */}
+                      <td className="px-4 py-3 text-gray-600">{log.week_ending_date}</td>
+
+                      {/* Status */}
+                      <td className="px-4 py-3">
+                        <StatusBadge status={log.status} />
+                      </td>
+
+                      {/* Feedback (truncated) */}
+                      <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
+                        {log.supervisor_feedback || '—'}
+                      </td>
+
+                      {/* Action */}
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2 items-center">
+                          {(log.status === 'draft' || log.status === 'rejected') && (
+                            isDeadlinePassed ? (
+                              <span className="text-red-400 text-xs font-medium">
+                                Deadline passed
+                              </span>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleEditClick(log)}
+                                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-lg text-xs font-medium transition"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleSubmitForReview(log.id)}
+                                  className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-medium transition"
+                                >
+                                  Submit for Review
+                                </button>
+                              </>
+                            )
+                          )}
+
+                          {log.status === 'submitted' && (
+                            <span className="text-gray-400 text-xs">Awaiting review</span>
+                          )}
+
+                          {log.status === 'approved' && (
+                            <span className="text-green-500 text-xs">✓ Approved</span>
+                          )}
+
+                          <button
+                            onClick={() => toggleExpand(log.id)}
+                            className="text-indigo-500 hover:text-indigo-700 text-xs font-medium underline"
+                          >
+                            {expandedLogId === log.id ? 'Hide' : 'View'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Expanded Row */}
+                    {expandedLogId === log.id && (
+                      <tr className="bg-indigo-50 border-b border-indigo-100">
+                        <td colSpan={5} className="px-6 py-5">
+                          <div className="space-y-4 text-sm">
+                            {/* Activities — always present */}
+                            <div>
+                              <p className="font-semibold text-gray-700 mb-1">Activities</p>
+                              <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
+                                {log.activities}
+                              </p>
+                            </div>
+
+                            {/* Key Learnings — only show if not empty */}
+                            {log.key_learnings && (
+                              <div>
+                                <p className="font-semibold text-gray-700 mb-1">Key Learnings</p>
+                                <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
+                                  {log.key_learnings}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Supervisor Feedback — highlighted in amber when present */}
+                            {log.supervisor_feedback && (
+                              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                                <p className="font-semibold text-amber-800 mb-1">
+                                  Supervisor Feedback
+                                </p>
+                                <p className="text-amber-700 whitespace-pre-wrap leading-relaxed">
+                                  {log.supervisor_feedback}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )
-                      )}
-
-                      {log.status === 'submitted' && (
-                        <span className="text-gray-400 text-xs">Awaiting review</span>
-                      )}
-
-                      {log.status === 'approved' && (
-                        <span className="text-green-500 text-xs">✓ Approved</span>
-                      )}
-                    </td>
-                  </tr>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))}
               </tbody>
             </table>
@@ -476,6 +575,8 @@ const StudentDashboard = () => {
           <h3 className="text-lg font-bold text-gray-800 mb-4">My Evaluation Results</h3>
           <EvaluationResults placementId={placement?.id} />
         </div>
+
+        <ProfileCard user={user} />
       </div>
     </div>
   );
