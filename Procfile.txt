@@ -1,0 +1,1 @@
+web: gunicorn iles_project.wsgi --log-file -
