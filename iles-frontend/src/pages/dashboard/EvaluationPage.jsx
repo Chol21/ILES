@@ -4,7 +4,16 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
-const EvaluationPage = () => {
+const theme = {
+  bg: '#0f1117', surface: '#1a1f2e', border: '#2a2f3e',
+  text: '#f1f5f9', muted: '#64748b', subtle: '#94a3b8',
+  primary: '#6366f1', primaryLight: '#818cf8',
+  success: '#10b981', danger: '#ef4444', warning: '#f59e0b',
+  font: "'Georgia', serif",
+};
+const card = { background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '14px', padding: '24px' };
+
+export default function EvaluationPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [placements, setPlacements] = useState([]);
@@ -17,58 +26,30 @@ const EvaluationPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchInitialData();
+    Promise.all([api.get('/placements/'), api.get('/evaluation-criteria/')])
+      .then(([p, c]) => { setPlacements(p.data); setCriteria(c.data.filter(x => x.is_active)); })
+      .catch(() => toast.error('Failed to load data.'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const fetchInitialData = async () => {
-    try {
-      const [placementsRes, criteriaRes] = await Promise.all([
-        api.get('/placements/'),
-        api.get('/evaluation-criteria/'),
-      ]);
-      setPlacements(placementsRes.data);
-      setCriteria(criteriaRes.data.filter(c => c.is_active));
-    } catch {
-      toast.error('Failed to load evaluation data.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSelectPlacement = async (placement) => {
-    setSelectedPlacement(placement);
-    setScores({});
-    setOverallEval(null);
+  const handleSelectPlacement = async (p) => {
+    setSelectedPlacement(p); setScores({}); setOverallEval(null);
     try {
       const [evalsRes, overallRes] = await Promise.all([
-        api.get(`/evaluations/?placement=${placement.id}`),
-        api.get(`/overall-evaluations/`),
+        api.get(`/evaluations/?placement=${p.id}`),
+        api.get('/overall-evaluations/'),
       ]);
-      const placementEvals = evalsRes.data.filter(e => e.placement === placement.id);
-      setExistingEvals(placementEvals);
-
-      // Pre-fill scores from existing evaluations
+      const evals = evalsRes.data.filter(e => e.placement === p.id);
+      setExistingEvals(evals);
       const scoreMap = {};
-      placementEvals.forEach(e => { scoreMap[e.criteria] = e.score; });
+      evals.forEach(e => { scoreMap[e.criteria] = e.score; });
       setScores(scoreMap);
-
-      const overall = overallRes.data.find(o => o.placement === placement.id);
-      setOverallEval(overall || null);
-    } catch {
-      toast.error('Failed to load existing evaluations.');
-    }
-  };
-
-  const handleScoreChange = (criteriaId, value) => {
-    const num = parseFloat(value);
-    if (value === '' || (num >= 0 && num <= 100)) {
-      setScores({ ...scores, [criteriaId]: value });
-    }
+      setOverallEval(overallRes.data.find(o => o.placement === p.id) || null);
+    } catch { toast.error('Failed to load evaluations.'); }
   };
 
   const calculatePreview = () => {
-    let total = 0;
-    let complete = true;
+    let total = 0; let complete = true;
     criteria.forEach(c => {
       const score = parseFloat(scores[c.id]);
       if (isNaN(score)) { complete = false; return; }
@@ -78,139 +59,100 @@ const EvaluationPage = () => {
   };
 
   const getGrade = (score) => {
-    if (score >= 80) return { grade: 'A', label: 'Distinction', color: 'text-green-700 bg-green-100' };
-    if (score >= 70) return { grade: 'B', label: 'Merit', color: 'text-blue-700 bg-blue-100' };
-    if (score >= 60) return { grade: 'C', label: 'Pass', color: 'text-yellow-700 bg-yellow-100' };
-    if (score >= 50) return { grade: 'D', label: 'Borderline', color: 'text-orange-700 bg-orange-100' };
-    return { grade: 'F', label: 'Fail', color: 'text-red-700 bg-red-100' };
+    if (score >= 80) return { grade: 'A', label: 'Distinction', color: theme.success };
+    if (score >= 70) return { grade: 'B', label: 'Merit', color: theme.primary };
+    if (score >= 60) return { grade: 'C', label: 'Pass', color: theme.warning };
+    if (score >= 50) return { grade: 'D', label: 'Borderline', color: '#f97316' };
+    return { grade: 'F', label: 'Fail', color: theme.danger };
   };
 
-  const handleSubmitEvaluation = async () => {
+  const handleSubmit = async () => {
     if (!selectedPlacement) return;
     const { complete } = calculatePreview();
-    if (!complete) {
-      toast.error('Please enter scores for all criteria before submitting.');
-      return;
-    }
-    for (const c of criteria) {
-      const score = parseFloat(scores[c.id]);
-      if (score < 0 || score > 100) {
-        toast.error(`Score for ${c.name} must be between 0 and 100.`);
-        return;
-      }
-    }
+    if (!complete) { toast.error('Please enter scores for all criteria.'); return; }
     setSubmitting(true);
     try {
-      // Submit or update each evaluation
       for (const c of criteria) {
         const existing = existingEvals.find(e => e.criteria === c.id);
-        const payload = {
-          placement: selectedPlacement.id,
-          criteria: c.id,
-          score: parseFloat(scores[c.id]),
-          evaluated_by: user.id,
-        };
-        if (existing) {
-          await api.patch(`/evaluations/${existing.id}/`, payload);
-        } else {
-          await api.post('/evaluations/', payload);
-        }
+        const payload = { placement: selectedPlacement.id, criteria: c.id, score: parseFloat(scores[c.id]), evaluated_by: user.id };
+        if (existing) await api.patch(`/evaluations/${existing.id}/`, payload);
+        else await api.post('/evaluations/', payload);
       }
-
-      // Calculate overall score
       const { total } = calculatePreview();
       const { grade } = getGrade(parseFloat(total));
-
-      const existingOverall = overallEval;
-      if (existingOverall) {
-        await api.patch(`/overall-evaluations/${existingOverall.id}/`, {
-          placement: selectedPlacement.id,
-          total_score: total,
-          grade,
-        });
-      } else {
-        await api.post('/overall-evaluations/', {
-          placement: selectedPlacement.id,
-          total_score: total,
-          grade,
-        });
-      }
-
-      toast.success(`Evaluation submitted! Final score: ${total} — Grade: ${grade}`);
+      if (overallEval) await api.patch(`/overall-evaluations/${overallEval.id}/`, { placement: selectedPlacement.id, total_score: total, grade });
+      else await api.post('/overall-evaluations/', { placement: selectedPlacement.id, total_score: total, grade });
+      toast.success(`Evaluation submitted! Score: ${total} — Grade: ${grade}`);
       handleSelectPlacement(selectedPlacement);
     } catch (err) {
       const errors = err.response?.data;
       if (errors) Object.values(errors).forEach(msg => toast.error(String(msg)));
       else toast.error('Failed to submit evaluation.');
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
   const { total, complete } = calculatePreview();
   const gradeInfo = total ? getGrade(parseFloat(total)) : null;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ minHeight: '100vh', background: theme.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: theme.font }}>
+      <div style={{ color: theme.muted }}>Loading...</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: theme.bg, fontFamily: theme.font }}>
+
       {/* Navbar */}
-      <nav className="bg-indigo-700 text-white px-6 py-4 flex justify-between items-center shadow">
-        <div>
-          <h1 className="text-xl font-bold">ILES</h1>
-          <p className="text-indigo-200 text-xs">Evaluation Portal</p>
+      <nav style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}`, padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '900', color: 'white' }}>I</div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: theme.text }}>ILES</div>
+            <div style={{ fontSize: '10px', color: theme.muted, letterSpacing: '1px' }}>EVALUATION PORTAL</div>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/supervisor')}
-            className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => navigate('/supervisor')} style={{ padding: '8px 16px', background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.muted, fontSize: '13px', cursor: 'pointer', fontFamily: theme.font }}>
             ← Back
           </button>
-          <span className="text-sm">{user?.first_name} {user?.last_name}</span>
-          <button
-            onClick={logout}
-            className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
-          >
-            Logout
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: theme.text }}>{user?.first_name} {user?.last_name}</div>
+            <div style={{ fontSize: '11px', color: theme.muted }}>{user?.role === 'workplace' ? 'Workplace Supervisor' : 'Supervisor'}</div>
+          </div>
+          <button onClick={logout} style={{ padding: '8px 16px', background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.muted, fontSize: '13px', cursor: 'pointer', fontFamily: theme.font }}>
+            Sign out
           </button>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Student Evaluations</h2>
-          <p className="text-gray-500 text-sm mt-1">
-            Score students using weighted criteria — Technical 40%, Communication 30%, Professionalism 30%
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2.5rem 2rem' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: theme.text, marginBottom: '6px' }}>Student Evaluations</h1>
+          <p style={{ color: theme.muted, fontSize: '14px' }}>
+            Score students using weighted criteria — Technical 40% · Communication 30% · Professionalism 30%
           </p>
         </div>
 
         {/* Placement Selection */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 mb-6">
-          <h3 className="font-semibold text-gray-700 mb-3">Select Student Placement</h3>
+        <div style={{ ...card, marginBottom: '2rem' }}>
+          <div style={{ fontSize: '11px', color: theme.muted, letterSpacing: '1px', marginBottom: '16px' }}>SELECT STUDENT PLACEMENT</div>
           {placements.length === 0 ? (
-            <p className="text-gray-400 text-sm">No placements found.</p>
+            <p style={{ color: theme.muted, fontSize: '14px' }}>No placements found.</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
               {placements.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => handleSelectPlacement(p)}
-                  className={`text-left p-4 rounded-lg border-2 transition ${
-                    selectedPlacement?.id === p.id
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 hover:border-indigo-300 bg-white'
-                  }`}
-                >
-                  <p className="font-semibold text-gray-800">{p.student_name}</p>
-                  <p className="text-sm text-gray-500">{p.company_name}</p>
-                  <p className="text-xs text-gray-400 mt-1">{p.start_date} → {p.end_date}</p>
+                <button key={p.id} onClick={() => handleSelectPlacement(p)} style={{
+                  textAlign: 'left', padding: '16px', borderRadius: '10px', cursor: 'pointer', fontFamily: theme.font,
+                  background: selectedPlacement?.id === p.id ? 'rgba(99,102,241,0.15)' : '#0f1117',
+                  border: `1px solid ${selectedPlacement?.id === p.id ? theme.primary : theme.border}`,
+                  transition: 'all 0.2s'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: '700', color: theme.text, marginBottom: '4px' }}>{p.student_name}</div>
+                  <div style={{ fontSize: '13px', color: theme.muted, marginBottom: '4px' }}>{p.company_name}</div>
+                  <div style={{ fontSize: '11px', color: theme.border }}>{p.start_date} → {p.end_date}</div>
                 </button>
               ))}
             </div>
@@ -219,40 +161,47 @@ const EvaluationPage = () => {
 
         {/* Evaluation Form */}
         {selectedPlacement && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="font-semibold text-gray-700 mb-1">
-              Evaluating: <span className="text-indigo-600">{selectedPlacement.student_name}</span>
-            </h3>
-            <p className="text-sm text-gray-400 mb-5">{selectedPlacement.company_name}</p>
+          <div style={card}>
+            <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '11px', color: theme.muted, letterSpacing: '1px', marginBottom: '4px' }}>EVALUATING</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: '700', color: theme.text }}>{selectedPlacement.student_name}</div>
+              <div style={{ fontSize: '13px', color: theme.muted }}>{selectedPlacement.company_name}</div>
+            </div>
 
-            {/* Criteria Scores */}
-            <div className="space-y-5 mb-6">
-              {criteria.map(c => (
-                <div key={c.id} className="border border-gray-100 rounded-lg p-4 bg-gray-50">
-                  <div className="flex justify-between items-start mb-2">
+            {/* Criteria */}
+            <div style={{ marginBottom: '24px' }}>
+              {criteria.map((c, i) => (
+                <div key={c.id} style={{ marginBottom: i < criteria.length - 1 ? '20px' : 0, padding: '16px', background: '#0f1117', borderRadius: '10px', border: `1px solid ${theme.border}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
-                      <p className="font-semibold text-gray-800">{c.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{c.description}</p>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: theme.text, marginBottom: '2px' }}>{c.name}</div>
+                      {c.description && <div style={{ fontSize: '12px', color: theme.muted }}>{c.description}</div>}
                     </div>
-                    <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
-                      Weight: {(parseFloat(c.weight) * 100).toFixed(0)}%
+                    <span style={{ padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '700', color: theme.primary, background: 'rgba(99,102,241,0.1)', border: `1px solid rgba(99,102,241,0.2)`, whiteSpace: 'nowrap', marginLeft: '12px' }}>
+                      {(parseFloat(c.weight) * 100).toFixed(0)}% weight
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 mt-3">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <input
-                      type="number"
-                      min="0"
-                      max="100"
+                      type="number" min="0" max="100"
                       value={scores[c.id] || ''}
-                      onChange={(e) => handleScoreChange(c.id, e.target.value)}
+                      onChange={e => {
+                        const v = e.target.value;
+                        if (v === '' || (parseFloat(v) >= 0 && parseFloat(v) <= 100)) setScores({ ...scores, [c.id]: v });
+                      }}
                       placeholder="0 – 100"
-                      className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      style={{ width: '100px', padding: '10px 12px', background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.text, fontSize: '14px', outline: 'none', fontFamily: theme.font }}
                     />
-                    <span className="text-gray-400 text-sm">/ 100</span>
+                    <span style={{ color: theme.muted, fontSize: '13px' }}>/ 100</span>
                     {scores[c.id] !== undefined && scores[c.id] !== '' && (
-                      <span className="text-indigo-600 text-sm font-medium">
+                      <span style={{ color: theme.primaryLight, fontSize: '13px', fontWeight: '600' }}>
                         Weighted: {(parseFloat(scores[c.id]) * parseFloat(c.weight)).toFixed(2)} pts
                       </span>
+                    )}
+                    {scores[c.id] !== undefined && scores[c.id] !== '' && (
+                      <div style={{ flex: 1, height: '4px', background: theme.border, borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${scores[c.id]}%`, background: `linear-gradient(90deg, ${theme.primary}, ${theme.primaryLight})`, borderRadius: '10px', transition: 'width 0.3s' }} />
+                      </div>
                     )}
                   </div>
                 </div>
@@ -261,23 +210,23 @@ const EvaluationPage = () => {
 
             {/* Score Preview */}
             {complete && gradeInfo && (
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-5">
-                <h4 className="font-semibold text-gray-700 mb-3">Score Preview</h4>
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <p className="text-4xl font-bold text-indigo-700">{total}</p>
-                    <p className="text-xs text-gray-400 mt-1">Total Score / 100</p>
+              <div style={{ padding: '20px', background: '#0f1117', borderRadius: '12px', border: `1px solid ${gradeInfo.color}30`, marginBottom: '20px' }}>
+                <div style={{ fontSize: '11px', color: theme.muted, letterSpacing: '1px', marginBottom: '16px' }}>SCORE PREVIEW</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '3rem', fontWeight: '800', color: theme.primary }}>{total}</div>
+                    <div style={{ fontSize: '11px', color: theme.muted, letterSpacing: '0.5px' }}>TOTAL / 100</div>
                   </div>
-                  <div className={`px-6 py-3 rounded-xl font-bold text-2xl ${gradeInfo.color}`}>
-                    {gradeInfo.grade}
-                    <p className="text-sm font-normal mt-0.5">{gradeInfo.label}</p>
+                  <div style={{ padding: '16px 24px', borderRadius: '12px', border: `2px solid ${gradeInfo.color}`, textAlign: 'center' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '800', color: gradeInfo.color }}>{gradeInfo.grade}</div>
+                    <div style={{ fontSize: '12px', color: theme.muted }}>{gradeInfo.label}</div>
                   </div>
-                  <div className="flex-1 text-sm text-gray-500 space-y-1">
+                  <div style={{ flex: 1 }}>
                     {criteria.map(c => (
-                      <div key={c.id} className="flex justify-between">
-                        <span>{c.name} ({(parseFloat(c.weight) * 100).toFixed(0)}%)</span>
-                        <span className="font-medium text-gray-700">
-                          {scores[c.id] || 0} × {c.weight} = {(parseFloat(scores[c.id] || 0) * parseFloat(c.weight)).toFixed(2)}
+                      <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '13px' }}>
+                        <span style={{ color: theme.muted }}>{c.name} ({(parseFloat(c.weight)*100).toFixed(0)}%)</span>
+                        <span style={{ color: theme.subtle, fontWeight: '600' }}>
+                          {scores[c.id] || 0} × {c.weight} = {(parseFloat(scores[c.id]||0)*parseFloat(c.weight)).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -286,28 +235,26 @@ const EvaluationPage = () => {
               </div>
             )}
 
-            {/* Existing Overall Result */}
+            {/* Previous Result */}
             {overallEval && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 text-sm">
-                <p className="font-semibold text-green-700">Previous Evaluation on Record</p>
-                <p className="text-green-600 mt-1">
-                  Score: {overallEval.total_score} — Grade: {overallEval.grade} — Evaluated: {new Date(overallEval.evaluated_at).toLocaleDateString()}
-                </p>
+              <div style={{ padding: '14px 16px', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>
+                <span style={{ color: theme.success, fontWeight: '600' }}>Previous evaluation on record — </span>
+                <span style={{ color: theme.muted }}>Score: {overallEval.total_score} · Grade: {overallEval.grade} · {new Date(overallEval.evaluated_at).toLocaleDateString()}</span>
               </div>
             )}
 
-            <button
-              onClick={handleSubmitEvaluation}
-              disabled={submitting || !complete}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-semibold text-sm transition disabled:opacity-50"
-            >
-              {submitting ? 'Submitting...' : overallEval ? 'Update Evaluation' : 'Submit Final Evaluation'}
+            <button onClick={handleSubmit} disabled={submitting || !complete} style={{
+              width: '100%', padding: '14px',
+              background: submitting || !complete ? '#2a2f3e' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              border: 'none', borderRadius: '10px', color: submitting || !complete ? theme.muted : 'white',
+              fontSize: '15px', fontWeight: '700', cursor: submitting || !complete ? 'not-allowed' : 'pointer',
+              fontFamily: theme.font, letterSpacing: '0.3px'
+            }}>
+              {submitting ? 'Submitting...' : overallEval ? 'Update Evaluation →' : 'Submit Final Evaluation →'}
             </button>
           </div>
         )}
       </div>
     </div>
   );
-};
-
-export default EvaluationPage;
+}

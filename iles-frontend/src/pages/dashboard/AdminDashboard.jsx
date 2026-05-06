@@ -4,7 +4,17 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../api/axios';
 
-const AdminDashboard = () => {
+const theme = {
+  bg: '#0f1117', surface: '#1a1f2e', border: '#2a2f3e',
+  text: '#f1f5f9', muted: '#64748b', subtle: '#94a3b8',
+  primary: '#6366f1', success: '#10b981', danger: '#ef4444', warning: '#f59e0b',
+  font: "'Georgia', serif",
+};
+const card = { background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '14px', padding: '24px' };
+const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: '8px', background: '#0f1117', border: `1px solid ${theme.border}`, color: theme.text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: theme.font };
+const labelStyle = { display: 'block', color: theme.muted, fontSize: '11px', fontWeight: '600', letterSpacing: '0.5px', marginBottom: '6px' };
+
+export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
@@ -14,270 +24,162 @@ const AdminDashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({
-    student: '',
-    company_name: '',
-    start_date: '',
-    end_date: '',
-    workplace_supervisor: '',
-    academic_supervisor: '',
-  });
+  const [form, setForm] = useState({ student: '', company_name: '', start_date: '', end_date: '', workplace_supervisor: '', academic_supervisor: '' });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const [studentsRes, usersRes, placementsRes] = await Promise.all([
-        api.get('/students/'),
-        api.get('/users/'),
-        api.get('/placements/'),
-      ]);
-      setStudents(studentsRes.data);
-      setSupervisors(usersRes.data.filter(u => u.role === 'workplace' || u.role === 'academic'));
-      setPlacements(placementsRes.data);
-    } catch {
-      toast.error('Failed to load dashboard data.');
-    } finally {
-      setLoading(false);
-    }
+      const [s, u, p] = await Promise.all([api.get('/students/'), api.get('/users/'), api.get('/placements/')]);
+      setStudents(s.data);
+      setSupervisors(u.data.filter(x => x.role === 'workplace' || x.role === 'academic'));
+      setPlacements(p.data);
+    } catch { toast.error('Failed to load data.'); }
+    finally { setLoading(false); }
   };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleCreatePlacement = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
+  const handleCreate = async (e) => {
+    e.preventDefault(); setSubmitting(true);
     try {
-      await api.post('/placements/', {
-        ...form,
-        workplace_supervisor: form.workplace_supervisor || null,
-        academic_supervisor: form.academic_supervisor || null,
-      });
-      toast.success('Placement created successfully!');
+      await api.post('/placements/', { ...form, workplace_supervisor: form.workplace_supervisor || null, academic_supervisor: form.academic_supervisor || null });
+      toast.success('Placement created!');
       setShowForm(false);
       setForm({ student: '', company_name: '', start_date: '', end_date: '', workplace_supervisor: '', academic_supervisor: '' });
       fetchData();
     } catch (err) {
       const errors = err.response?.data;
-      if (errors) {
-        Object.values(errors).forEach((msg) => toast.error(String(msg)));
-      } else {
-        toast.error('Failed to create placement.');
-      }
-    } finally {
-      setSubmitting(false);
-    }
+      if (errors) Object.values(errors).forEach(msg => toast.error(String(msg)));
+      else toast.error('Failed to create placement.');
+    } finally { setSubmitting(false); }
   };
 
-  const handleToggleActive = async (placement) => {
-    try {
-      await api.patch(`/placements/${placement.id}/`, { is_active: !placement.is_active });
-      toast.success(`Placement ${placement.is_active ? 'deactivated' : 'activated'}.`);
-      fetchData();
-    } catch {
-      toast.error('Failed to update placement.');
-    }
+  const handleToggle = async (p) => {
+    try { await api.patch(`/placements/${p.id}/`, { is_active: !p.is_active }); toast.success(`Placement ${p.is_active ? 'deactivated' : 'activated'}.`); fetchData(); }
+    catch { toast.error('Failed to update.'); }
   };
 
-  const workplaceSupervisors = supervisors.filter(s => s.role === 'workplace');
-  const academicSupervisors = supervisors.filter(s => s.role === 'academic');
-
-  const filteredPlacements = placements.filter(p =>
+  const workplaceS = supervisors.filter(s => s.role === 'workplace');
+  const academicS = supervisors.filter(s => s.role === 'academic');
+  const filtered = placements.filter(p =>
     p.student_name?.toLowerCase().includes(search.toLowerCase()) ||
     p.company_name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-500">Loading dashboard...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ minHeight: '100vh', background: theme.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: theme.font }}>
+      <div style={{ color: theme.muted }}>Loading...</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: theme.bg, fontFamily: theme.font }}>
 
       {/* Navbar */}
-      <nav className="bg-indigo-700 text-white px-6 py-4 flex justify-between items-center shadow">
-        <div>
-          <h1 className="text-xl font-bold">ILES</h1>
-          <p className="text-indigo-200 text-xs">Admin Portal</p>
+      <nav style={{ background: theme.surface, borderBottom: `1px solid ${theme.border}`, padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '64px', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: '900', color: 'white' }}>I</div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: '700', color: theme.text }}>ILES</div>
+            <div style={{ fontSize: '10px', color: theme.muted, letterSpacing: '1px' }}>ADMIN PORTAL</div>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="text-sm">{user?.first_name} {user?.last_name}</span>
-          <span className="text-indigo-200 text-xs bg-indigo-600 px-2 py-1 rounded-full">
-            Administrator
-          </span>
-          <button
-            onClick={() => navigate('/evaluation')}
-            className="bg-green-500 hover:bg-green-600 px-3 py-1.5 rounded-lg text-sm transition"
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => navigate('/evaluation')} style={{ padding: '8px 16px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '8px', color: theme.success, fontSize: '13px', fontWeight: '600', cursor: 'pointer', fontFamily: theme.font }}>
             Evaluations
           </button>
-          <button
-            onClick={logout}
-            className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
-          >
-            Logout
+          <div style={{ width: '1px', height: '24px', background: theme.border }} />
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: theme.text }}>{user?.first_name} {user?.last_name}</div>
+            <div style={{ fontSize: '11px', color: theme.muted }}>Administrator</div>
+          </div>
+          <button onClick={logout} style={{ padding: '8px 16px', background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.muted, fontSize: '13px', cursor: 'pointer', fontFamily: theme.font }}>
+            Sign out
           </button>
         </div>
       </nav>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem 2rem' }}>
 
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Admin Dashboard</h2>
-          <p className="text-gray-500 text-sm mt-1">
-            Manage internship placements and assign supervisors to students.
-          </p>
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: theme.text, marginBottom: '6px' }}>Admin Dashboard</h1>
+          <p style={{ color: theme.muted, fontSize: '14px' }}>Manage internship placements and assign supervisors to students.</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '2rem' }}>
           {[
-            { label: 'Total Students', count: students.length, color: 'bg-white', text: 'text-gray-800' },
-            { label: 'Active Placements', count: placements.filter(p => p.is_active).length, color: 'bg-green-50', text: 'text-green-700' },
-            { label: 'Total Supervisors', count: supervisors.length, color: 'bg-blue-50', text: 'text-blue-700' },
-          ].map((stat) => (
-            <div key={stat.label} className={`${stat.color} rounded-xl border border-gray-200 p-4 shadow-sm`}>
-              <p className="text-gray-400 text-xs mb-1">{stat.label}</p>
-              <p className={`text-3xl font-bold ${stat.text}`}>{stat.count}</p>
+            { label: 'Total Students', value: students.length, color: theme.primary },
+            { label: 'Active Placements', value: placements.filter(p => p.is_active).length, color: theme.success },
+            { label: 'Total Supervisors', value: supervisors.length, color: '#60a5fa' },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ ...card, padding: '20px' }}>
+              <div style={{ fontSize: '11px', color: theme.muted, letterSpacing: '0.8px', marginBottom: '8px' }}>{label.toUpperCase()}</div>
+              <div style={{ fontSize: '2.2rem', fontWeight: '800', color }}>{value}</div>
             </div>
           ))}
         </div>
 
-        {/* Placements Section */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-gray-800">Internship Placements</h3>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            {showForm ? 'Cancel' : '+ New Placement'}
+        {/* Placements Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: theme.text, marginBottom: '2px' }}>Internship Placements</h2>
+            <p style={{ fontSize: '13px', color: theme.muted }}>{placements.length} placement{placements.length !== 1 ? 's' : ''} total</p>
+          </div>
+          <button onClick={() => setShowForm(!showForm)} style={{ padding: '10px 20px', background: showForm ? 'transparent' : 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: showForm ? `1px solid ${theme.border}` : 'none', borderRadius: '8px', color: showForm ? theme.muted : 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: theme.font }}>
+            {showForm ? '✕ Cancel' : '+ New Placement'}
           </button>
         </div>
 
         {/* New Placement Form */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h4 className="font-semibold text-gray-700 mb-4">Create New Placement</h4>
-            <form onSubmit={handleCreatePlacement} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+          <div style={{ ...card, marginBottom: '20px' }}>
+            <h3 style={{ color: theme.text, fontSize: '16px', fontWeight: '600', marginBottom: '20px' }}>Create New Placement</h3>
+            <form onSubmit={handleCreate}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Student <span className="text-red-400">*</span>
-                  </label>
-                  <select
-                    name="student"
-                    value={form.student}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  >
+                  <label style={labelStyle}>STUDENT *</label>
+                  <select name="student" value={form.student} onChange={e => setForm({...form, student: e.target.value})} required style={{ ...inputStyle, cursor: 'pointer' }}>
                     <option value="">Select student...</option>
-                    {students.map(s => (
-                      <option key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} ({s.student_number || s.username})
-                      </option>
-                    ))}
+                    {students.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name} ({s.student_number || s.username})</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Company Name <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="company_name"
-                    value={form.company_name}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. Acme Corporation"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  />
+                  <label style={labelStyle}>COMPANY NAME *</label>
+                  <input type="text" value={form.company_name} onChange={e => setForm({...form, company_name: e.target.value})} required placeholder="e.g. Acme Corporation" style={inputStyle} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Start Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    value={form.start_date}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  />
+                  <label style={labelStyle}>START DATE *</label>
+                  <input type="date" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} required style={inputStyle} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">
-                    End Date <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="end_date"
-                    value={form.end_date}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  />
+                  <label style={labelStyle}>END DATE *</label>
+                  <input type="date" value={form.end_date} onChange={e => setForm({...form, end_date: e.target.value})} required style={inputStyle} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Workplace Supervisor</label>
-                  <select
-                    name="workplace_supervisor"
-                    value={form.workplace_supervisor}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  >
+                  <label style={labelStyle}>WORKPLACE SUPERVISOR</label>
+                  <select value={form.workplace_supervisor} onChange={e => setForm({...form, workplace_supervisor: e.target.value})} style={{ ...inputStyle, cursor: 'pointer' }}>
                     <option value="">None</option>
-                    {workplaceSupervisors.map(s => (
-                      <option key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} ({s.staff_number || s.username})
-                      </option>
-                    ))}
+                    {workplaceS.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Academic Supervisor</label>
-                  <select
-                    name="academic_supervisor"
-                    value={form.academic_supervisor}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  >
+                  <label style={labelStyle}>ACADEMIC SUPERVISOR</label>
+                  <select value={form.academic_supervisor} onChange={e => setForm({...form, academic_supervisor: e.target.value})} style={{ ...inputStyle, cursor: 'pointer' }}>
                     <option value="">None</option>
-                    {academicSupervisors.map(s => (
-                      <option key={s.id} value={s.id}>
-                        {s.first_name} {s.last_name} ({s.staff_number || s.username})
-                      </option>
-                    ))}
+                    {academicS.map(s => <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>)}
                   </select>
                 </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition disabled:opacity-50"
-                >
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="submit" disabled={submitting} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: theme.font, opacity: submitting ? 0.6 : 1 }}>
                   {submitting ? 'Creating...' : 'Create Placement'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-2 rounded-lg text-sm font-medium transition"
-                >
+                <button type="button" onClick={() => setShowForm(false)} style={{ padding: '10px 20px', background: 'transparent', border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.muted, fontSize: '14px', cursor: 'pointer', fontFamily: theme.font }}>
                   Cancel
                 </button>
               </div>
@@ -285,58 +187,41 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Search Bar */}
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search by student or company..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-80 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
+        {/* Search */}
+        <div style={{ marginBottom: '16px' }}>
+          <input type="text" placeholder="Search by student or company..." value={search} onChange={e => setSearch(e.target.value)} style={{ padding: '10px 14px', background: theme.surface, border: `1px solid ${theme.border}`, borderRadius: '8px', color: theme.text, fontSize: '14px', outline: 'none', fontFamily: theme.font, minWidth: '280px' }} />
         </div>
 
         {/* Placements Table */}
-        {filteredPlacements.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-10 text-center text-gray-400">
-            {search ? `No placements found for "${search}".` : 'No placements yet. Click + New Placement to assign a student.'}
+        {filtered.length === 0 ? (
+          <div style={{ ...card, textAlign: 'center', padding: '48px', color: theme.muted, fontSize: '14px' }}>
+            {search ? `No placements found for "${search}".` : 'No placements yet. Click + New Placement to get started.'}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Student</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Company</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Start</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">End</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Workplace Supervisor</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Action</th>
+          <div style={{ ...card, padding: 0, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
+                  {['Student', 'Company', 'Start', 'End', 'Supervisor', 'Status', 'Action'].map(h => (
+                    <th key={h} style={{ padding: '14px 16px', textAlign: 'left', color: theme.muted, fontSize: '11px', fontWeight: '600', letterSpacing: '0.8px' }}>{h.toUpperCase()}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredPlacements.map((p) => (
-                  <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{p.student_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.company_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.start_date}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.end_date}</td>
-                    <td className="px-4 py-3 text-gray-600">{p.workplace_supervisor_name || '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {p.is_active ? 'Active' : 'Inactive'}
+                {filtered.map((p, i) => (
+                  <tr key={p.id} style={{ borderBottom: i < filtered.length - 1 ? `1px solid ${theme.border}` : 'none' }}>
+                    <td style={{ padding: '14px 16px', color: theme.text, fontWeight: '600' }}>{p.student_name}</td>
+                    <td style={{ padding: '14px 16px', color: theme.subtle }}>{p.company_name}</td>
+                    <td style={{ padding: '14px 16px', color: theme.muted }}>{p.start_date}</td>
+                    <td style={{ padding: '14px 16px', color: theme.muted }}>{p.end_date}</td>
+                    <td style={{ padding: '14px 16px', color: theme.muted }}>{p.workplace_supervisor_name || '—'}</td>
+                    <td style={{ padding: '14px 16px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: '600', color: p.is_active ? theme.success : theme.muted, background: p.is_active ? 'rgba(16,185,129,0.1)' : '#2a2f3e' }}>
+                        {p.is_active ? '● Active' : '● Inactive'}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleToggleActive(p)}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition ${
-                          p.is_active
-                            ? 'bg-red-50 hover:bg-red-100 text-red-600'
-                            : 'bg-green-50 hover:bg-green-100 text-green-600'
-                        }`}
-                      >
+                    <td style={{ padding: '14px 16px' }}>
+                      <button onClick={() => handleToggle(p)} style={{ padding: '5px 12px', background: p.is_active ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', border: `1px solid ${p.is_active ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, borderRadius: '6px', color: p.is_active ? theme.danger : theme.success, fontSize: '12px', fontWeight: '600', cursor: 'pointer', fontFamily: theme.font }}>
                         {p.is_active ? 'Deactivate' : 'Activate'}
                       </button>
                     </td>
@@ -349,6 +234,4 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
-};
-
-export default AdminDashboard;
+}

@@ -1,13 +1,9 @@
 from django.utils import timezone
-from django.db.models import QuerySet
-
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
 
 from core.models import (
     CustomUser,
@@ -17,7 +13,6 @@ from core.models import (
     OverallEvaluation,
     WeeklyLog,
 )
-
 from .serializers import (
     CustomUserSerializer,
     EvaluationCriteriaSerializer,
@@ -27,43 +22,25 @@ from .serializers import (
     RegisterSerializer,
     WeeklyLogSerializer,
 )
-
 from .permissions import IsAdminRole, IsSupervisorOrOwner
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Utility Mixins
-# ─────────────────────────────────────────────────────────────────────────────
-
-class RoleQuerySetMixin:
-    """Centralized role-based filtering logic"""
-
-    def is_admin(self, user):
-        return user.role == "admin" or user.is_staff
-
-    def none(self):
-        return self.queryset.none()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Auth
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Auth ─────────────────────────────────────────────────────────────────────
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            "user": CustomUserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'user': CustomUserSerializer(user).data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -71,247 +48,212 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data.get("refresh")
+            refresh_token = request.data.get('refresh')
             token = RefreshToken(refresh_token)
             token.blacklist()
-            return Response({"message": "Logged out successfully."})
+            return Response({'message': 'Logged out successfully.'}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response({'error': 'Invalid token.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        except TokenError:
-            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
 
+# ─── User ─────────────────────────────────────────────────────────────────────
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Users
-# ─────────────────────────────────────────────────────────────────────────────
-
-class CustomUserViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
+class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self):
         user = self.request.user
-        if self.is_admin(user):
-            return self.queryset
-        return self.queryset.filter(pk=user.pk)
+        if user.role == 'admin' or user.is_staff:
+            return CustomUser.objects.all()
+        return CustomUser.objects.filter(pk=user.pk)
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=['get'], url_path='me')
     def me(self, request):
-        return Response(self.get_serializer(request.user).data)
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
 
 
-class StudentViewSet(RoleQuerySetMixin, viewsets.ReadOnlyModelViewSet):
+class StudentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        if self.is_admin(user) or user.role in ["workplace", "academic"]:
-            return CustomUser.objects.filter(role="student")
-        return CustomUser.objects.filter(pk=user.pk, role="student")
+        if user.role in ['admin', 'workplace', 'academic'] or user.is_staff:
+            return CustomUser.objects.filter(role='student')
+        return CustomUser.objects.filter(pk=user.pk, role='student')
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Internship
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Internship ───────────────────────────────────────────────────────────────
 
-class InternshipPlacementViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
-    queryset = InternshipPlacement.objects.select_related(
-        "student", "workplace_supervisor", "academic_supervisor"
-    )
+class InternshipPlacementViewSet(viewsets.ModelViewSet):
+    queryset = InternshipPlacement.objects.all()
     serializer_class = InternshipPlacementSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSupervisorOrOwner]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-
-        if self.is_admin(user):
-            return self.queryset
-        if user.role == "student":
-            return self.queryset.filter(student=user)
-        if user.role == "workplace":
-            return self.queryset.filter(workplace_supervisor=user)
-        if user.role == "academic":
-            return self.queryset.filter(academic_supervisor=user)
-
-        return self.none()
+        if user.role == 'admin' or user.is_staff:
+            return InternshipPlacement.objects.all()
+        elif user.role == 'student':
+            return InternshipPlacement.objects.filter(student=user)
+        elif user.role == 'workplace':
+            return InternshipPlacement.objects.filter(workplace_supervisor=user)
+        elif user.role == 'academic':
+            return InternshipPlacement.objects.filter(academic_supervisor=user)
+        return InternshipPlacement.objects.none()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Weekly Logs
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Weekly Log ───────────────────────────────────────────────────────────────
 
-class WeeklyLogViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
-    queryset = WeeklyLog.objects.select_related(
-        "placement", "placement__student"
-    )
+class WeeklyLogViewSet(viewsets.ModelViewSet):
+    queryset = WeeklyLog.objects.all()
     serializer_class = WeeklyLogSerializer
     permission_classes = [permissions.IsAuthenticated, IsSupervisorOrOwner]
 
     def get_queryset(self):
         user = self.request.user
+        if user.role == 'admin' or user.is_staff:
+            return WeeklyLog.objects.all()
+        elif user.role == 'student':
+            return WeeklyLog.objects.filter(placement__student=user)
+        elif user.role == 'workplace':
+            return WeeklyLog.objects.filter(placement__workplace_supervisor=user)
+        elif user.role == 'academic':
+            return WeeklyLog.objects.filter(placement__academic_supervisor=user)
+        return WeeklyLog.objects.none()
 
-        if self.is_admin(user):
-            return self.queryset
-        if user.role == "student":
-            return self.queryset.filter(placement__student=user)
-        if user.role == "workplace":
-            return self.queryset.filter(placement__workplace_supervisor=user)
-        if user.role == "academic":
-            return self.queryset.filter(placement__academic_supervisor=user)
-
-        return self.none()
-
-    # ─── Actions ───
-
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         log = self.get_object()
 
-        if log.placement.end_date < timezone.now().date():
+        # Deadline enforcement
+        today = timezone.now().date()
+        if log.placement.end_date < today:
             return Response(
-                {"error": "Internship has ended."},
+                {'error': 'Submission deadline has passed. Your internship placement has ended.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if log.status not in ["draft", "rejected"]:
+        if log.status not in ['draft', 'rejected']:
             return Response(
-                {"error": "Only draft or rejected logs can be submitted."},
+                {'error': 'Only draft or rejected logs can be submitted.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        log.status = "submitted"
+        log.status = 'submitted'
         log.submitted_at = timezone.now()
         log.save()
-
         return Response(self.get_serializer(log).data)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        if request.user.role not in ["workplace", "academic"]:
-            return Response({"error": "Not authorized."}, status=403)
-
         log = self.get_object()
-
-        if log.status != "submitted":
+        if log.status != 'submitted':
             return Response(
-                {"error": "Only submitted logs can be approved."},
+                {'error': 'Only submitted logs can be approved.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        log.status = "approved"
+        log.status = 'approved'
         log.reviewed_at = timezone.now()
-        log.supervisor_feedback = request.data.get("feedback", "")
+        log.supervisor_feedback = request.data.get('feedback', '')
         log.save()
-
         return Response(self.get_serializer(log).data)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
-        if request.user.role not in ["workplace", "academic"]:
-            return Response({"error": "Not authorized."}, status=403)
-
         log = self.get_object()
-        feedback = request.data.get("feedback")
-
-        if log.status != "submitted":
+        if log.status != 'submitted':
             return Response(
-                {"error": "Only submitted logs can be rejected."},
+                {'error': 'Only submitted logs can be rejected.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        feedback = request.data.get('feedback')
         if not feedback:
             return Response(
-                {"error": "Feedback is required."},
+                {'error': 'Feedback is required when rejecting a log.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        log.status = "rejected"
+        log.status = 'rejected'
         log.reviewed_at = timezone.now()
         log.supervisor_feedback = feedback
         log.save()
-
         return Response(self.get_serializer(log).data)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 🔹 Evaluation
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Evaluation ───────────────────────────────────────────────────────────────
 
-class EvaluationCriteriaViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
+class EvaluationCriteriaViewSet(viewsets.ModelViewSet):
     queryset = EvaluationCriteria.objects.all()
     serializer_class = EvaluationCriteriaSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        if self.is_admin(user):
-            return self.queryset
-        return self.queryset.filter(is_active=True)
+        if user.role == 'admin' or user.is_staff:
+            return EvaluationCriteria.objects.all()
+        return EvaluationCriteria.objects.filter(is_active=True)
 
 
-class EvaluationViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
-    queryset = Evaluation.objects.select_related("placement")
+class EvaluationViewSet(viewsets.ModelViewSet):
+    queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSupervisorOrOwner]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        qs = self.queryset
-
-        placement_id = self.request.query_params.get("placement")
+        placement_id = self.request.query_params.get('placement')
+        qs = Evaluation.objects.all()
         if placement_id:
             qs = qs.filter(placement_id=placement_id)
-
-        if self.is_admin(user):
+        if user.role == 'admin' or user.is_staff:
             return qs
-        if user.role == "student":
+        elif user.role == 'student':
             return qs.filter(placement__student=user)
-        if user.role == "workplace":
+        elif user.role == 'workplace':
             return qs.filter(placement__workplace_supervisor=user)
-        if user.role == "academic":
+        elif user.role == 'academic':
             return qs.filter(placement__academic_supervisor=user)
+        return Evaluation.objects.none()
 
-        return self.none()
 
-
-class OverallEvaluationViewSet(RoleQuerySetMixin, viewsets.ModelViewSet):
-    queryset = OverallEvaluation.objects.select_related("placement")
+class OverallEvaluationViewSet(viewsets.ModelViewSet):
+    queryset = OverallEvaluation.objects.all()
     serializer_class = OverallEvaluationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSupervisorOrOwner]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-
-        if self.is_admin(user):
-            return self.queryset
-        if user.role == "student":
-            return self.queryset.filter(placement__student=user)
-        if user.role == "workplace":
-            return self.queryset.filter(placement__workplace_supervisor=user)
-        if user.role == "academic":
-            return self.queryset.filter(placement__academic_supervisor=user)
-
-        return self.none()
+        if user.role == 'admin' or user.is_staff:
+            return OverallEvaluation.objects.all()
+        elif user.role == 'student':
+            return OverallEvaluation.objects.filter(placement__student=user)
+        return OverallEvaluation.objects.all()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        placement_id = request.data.get('placement')
+        total_score = request.data.get('total_score')
+        grade = request.data.get('grade')
 
-        placement = serializer.validated_data["placement"]
-
-        existing = OverallEvaluation.objects.filter(placement=placement).first()
+        existing = OverallEvaluation.objects.filter(placement_id=placement_id).first()
         if existing:
-            existing.total_score = serializer.validated_data["total_score"]
-            existing.grade = serializer.validated_data["grade"]
+            existing.total_score = total_score
+            existing.grade = grade
             existing.save()
+            serializer = self.get_serializer(existing)
+            return Response(serializer.data)
 
-            return Response(self.get_serializer(existing).data)
-
+        serializer = self.get_serializer(data={
+            'placement': placement_id,
+            'total_score': total_score,
+            'grade': grade,
+        })
+        serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=['post'], url_path='calculate')
     def calculate(self, request, pk=None):
         overall = self.get_object()
         overall.calculate_total_score()
