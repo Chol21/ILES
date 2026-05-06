@@ -6,6 +6,7 @@ import api from '../../api/axios';
 
 const EvaluationPage = () => {
   const { user, logout } = useAuth();
+  const backRoute = user?.role === 'admin' ? '/admin' : '/supervisor';
   const navigate = useNavigate();
   const [placements, setPlacements] = useState([]);
   const [criteria, setCriteria] = useState([]);
@@ -168,7 +169,9 @@ const EvaluationPage = () => {
         </div>
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/supervisor')}
+            
+            onClick={() => navigate(backRoute)}
+
             className="bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg text-sm transition"
           >
             ← Back

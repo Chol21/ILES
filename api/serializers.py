@@ -72,20 +72,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class InternshipPlacementSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='student.username', read_only=True)
+    workplace_supervisor_name =serializers.CharField(source='workplace_supervisor.get_full_name', read_only=True,
+    allow_null=True)
+    academic_supervisor_name = serializers.CharField(source='academic_supervisor.get_full_name',
+    read_only=True, allow_null=True)
+
 
     class Meta:
         model = InternshipPlacement
-        fields = [
-            'id',
-            'student',
-            'student_name',
-            'company_name',
-            'start_date',
-            'end_date',
-            'workplace_supervisor',
-            'academic_supervisor',
-        ]
+       
+        fields = ['id', 'student', 'student_name', 'company_name', 'start_date', 'end_date',
+            'workplace_supervisor', 'workplace_supervisor_name', 'academic_supervisor',
+            'academic_supervisor_name', 'is_active']
         read_only_fields = ['id', 'student']
 
     def validate(self, data):
@@ -98,11 +96,11 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        # enforce student ownership
-        request = self.context['request']
-        validated_data['student'] = request.user
+        request = self.context["request"]
+        # Admin can assign any student; non-admin creates for themselves
+        if request.user.role != "admin":
+            validated_data["student"] = request.user
         return super().create(validated_data)
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 🔹 Weekly Log
@@ -113,17 +111,10 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WeeklyLog
-        fields = [
-            'id',
-            'placement',
-            'student_name',
-            'week_number',
-            'week_ending_date',
-            'content',
-            'status',
-            'submitted_at',
-            'reviewed_at',
-        ]
+        fields = ['id', 'placement', 'student_name', 'week_number', 'week_ending_date', 'activities',
+        'key_learnings', 'challenges', 'status', 'supervisor_feedback', 'submitted_at',
+        'reviewed_at']
+        
         read_only_fields = [
             'id',
             'status',
@@ -155,7 +146,7 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
-        fields = ['id', 'name', 'max_score', 'is_active']
+        fields = ['id', 'name', 'description', 'weight', 'is_active']
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -167,16 +158,9 @@ class EvaluationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evaluation
-        fields = [
-            'id',
-            'placement',
-            'criteria',
-            'criteria_name',
-            'score',
-            'feedback',
-            'evaluated_by',
-        ]
-        read_only_fields = ['id', 'evaluated_by']
+        fields = ['id', 'placement', 'criteria', 'criteria_name', 'score', 'evaluated_by',
+            'evaluated_at']
+        read_only_fields = ['id', 'evaluated_by', 'evaluated_at']
 
     def validate_score(self, value):
         if value < 0 or value > 100:
