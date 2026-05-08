@@ -1,5 +1,9 @@
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -7,7 +11,7 @@ SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']  # For development only
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 # ─── Installed Apps ───────────────────────────────────────────────────────────
 
@@ -98,8 +102,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 
-CORS_ALLOW_ALL_ORIGINS = True      # Development only — lock this down in production
+CORS_ALLOWED_ORIGINS = [
+    'https://iles-git-main-chol21s-projects.vercel.app',
+    'http://localhost:5173',
+]
 CORS_ALLOW_CREDENTIALS = True
+# Remove or comment out CORS_ALLOW_ALL_ORIGINS = True
 
 # ─── Django REST Framework ────────────────────────────────────────────────────
 
