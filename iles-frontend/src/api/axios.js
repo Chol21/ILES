@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://iles-production.up.railway.app/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api',
 });
 
 // Attach JWT token to every request automatically
@@ -22,10 +22,7 @@ api.interceptors.response.use(
       original._retry = true;
       try {
         const refresh = localStorage.getItem('refresh_token');
-        const res = await axios.post(
-          'http://127.0.0.1:8000/api/auth/token/refresh/',
-          { refresh }
-        );
+        const res = await axios.post('https://iles-production.up.railway.app/api/auth/token/refresh/', { refresh });
         localStorage.setItem('access_token', res.data.access);
         original.headers.Authorization = `Bearer ${res.data.access}`;
         return api(original);
