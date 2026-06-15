@@ -112,6 +112,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 
 CORS_ALLOWED_ORIGINS = [
+    'https://iles-31ud0i8if-chol21s-projects.vercel.app',
     'https://iles-pi.vercel.app',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
