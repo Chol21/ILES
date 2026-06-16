@@ -1,0 +1,1028 @@
+﻿[
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 3,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 3,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 3,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 3,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 2,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 2,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 2,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 2,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 4,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 4,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 4,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 4,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 5,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 5,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 5,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 5,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add evaluation criteria",
+    "content_type": 8,
+    "codename": "add_evaluationcriteria"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change evaluation criteria",
+    "content_type": 8,
+    "codename": "change_evaluationcriteria"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete evaluation criteria",
+    "content_type": 8,
+    "codename": "delete_evaluationcriteria"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view evaluation criteria",
+    "content_type": 8,
+    "codename": "view_evaluationcriteria"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add User",
+    "content_type": 6,
+    "codename": "add_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change User",
+    "content_type": 6,
+    "codename": "change_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete User",
+    "content_type": 6,
+    "codename": "delete_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view User",
+    "content_type": 6,
+    "codename": "view_customuser"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add internship placement",
+    "content_type": 9,
+    "codename": "add_internshipplacement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change internship placement",
+    "content_type": 9,
+    "codename": "change_internshipplacement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete internship placement",
+    "content_type": 9,
+    "codename": "delete_internshipplacement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view internship placement",
+    "content_type": 9,
+    "codename": "view_internshipplacement"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add overall evaluation",
+    "content_type": 10,
+    "codename": "add_overallevaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change overall evaluation",
+    "content_type": 10,
+    "codename": "change_overallevaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete overall evaluation",
+    "content_type": 10,
+    "codename": "delete_overallevaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view overall evaluation",
+    "content_type": 10,
+    "codename": "view_overallevaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add evaluation",
+    "content_type": 7,
+    "codename": "add_evaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change evaluation",
+    "content_type": 7,
+    "codename": "change_evaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete evaluation",
+    "content_type": 7,
+    "codename": "delete_evaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view evaluation",
+    "content_type": 7,
+    "codename": "view_evaluation"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add weekly log",
+    "content_type": 11,
+    "codename": "add_weeklylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change weekly log",
+    "content_type": 11,
+    "codename": "change_weeklylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete weekly log",
+    "content_type": 11,
+    "codename": "delete_weeklylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view weekly log",
+    "content_type": 11,
+    "codename": "view_weeklylog"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 1,
+  "fields": {
+    "app_label": "admin",
+    "model": "logentry"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 2,
+  "fields": {
+    "app_label": "auth",
+    "model": "group"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 3,
+  "fields": {
+    "app_label": "auth",
+    "model": "permission"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 4,
+  "fields": {
+    "app_label": "contenttypes",
+    "model": "contenttype"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 5,
+  "fields": {
+    "app_label": "sessions",
+    "model": "session"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 6,
+  "fields": {
+    "app_label": "core",
+    "model": "customuser"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 7,
+  "fields": {
+    "app_label": "core",
+    "model": "evaluation"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 8,
+  "fields": {
+    "app_label": "core",
+    "model": "evaluationcriteria"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 9,
+  "fields": {
+    "app_label": "core",
+    "model": "internshipplacement"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 10,
+  "fields": {
+    "app_label": "core",
+    "model": "overallevaluation"
+  }
+},
+{
+  "model": "contenttypes.contenttype",
+  "pk": 11,
+  "fields": {
+    "app_label": "core",
+    "model": "weeklylog"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "hpp2ngzmf568i8z721dlm1j2i8xzpfvx",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQAP-yZ0MWrMD26N03NMsCUjWQlPZk_Ltp0oNeZybzhom3tUxbT8s0RxhBw-mXBZZnqruID673pqTVdZmD2hN12K5uLabX9Wj_BoV7gRFIbGQ_XAInn12mnJDEI2c21vqIzhktjBKJCAOaLGQTCw9ny0YjwecLBSc4aQ:1wHAJf:lItvnmxvkCN0TrPg4fQ8fa5uDLlVVkZ9PRgxB4M7_8Y",
+    "expire_date": "2026-05-11T00:59:15.274Z"
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$MgElYgzI0Qr4lYlNyRTdc7$okoabzhH3pJp+YErh5JnbEteTR6wnnTfiEU65KtO5gA=",
+    "last_login": "2026-04-27T00:59:15.267Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "Admin",
+    "last_name": "",
+    "email": "chol@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-04-27T00:55:24.474Z",
+    "role": "admin",
+    "department": null,
+    "staff_number": null,
+    "student_number": null,
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$ftUZitH1gnd6GqEtAozNRm$RHH+fSj8yKRTpmBFFxS1h+K+LTgMJZ3GKJZdRZcVZrA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "student1",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "student1@iles.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-27T01:13:23.267Z",
+    "role": "student",
+    "department": "Computer Science",
+    "staff_number": null,
+    "student_number": "2100700123",
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$yPL5mX4zZnieUSMaz1Imsb$G2R/QwUMKF+/ju5vS7UhRFpN2woLkN57pySkRJg0xeE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "supervisor1",
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "email": "supervisor1@iles.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-27T01:13:23.918Z",
+    "role": "workplace",
+    "department": "Engineering",
+    "staff_number": "STAFF001",
+    "student_number": null,
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$enpMWOjAiExEDSE5uXwg82$KFcdQJ1sgbKl4eQ+qx72Gs7ZRjINC5Vg/b9uSyS4s/o=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "student2",
+    "first_name": "Chol",
+    "last_name": "Johnson",
+    "email": "student2@iles.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-27T16:53:18.181Z",
+    "role": "student",
+    "department": "Computer Science",
+    "staff_number": null,
+    "student_number": "2100700124",
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$7mOtLcrFVAUkZq4jm8BL8X$8nLNEibgBIL/5iEubiBHJouGYS6KZkmsz6eOg5NtQC8=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "supervisor2",
+    "first_name": "Jolene",
+    "last_name": "Ochen",
+    "email": "supervisor2@iles.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-27T16:53:18.699Z",
+    "role": "workplace",
+    "department": "Engineering",
+    "staff_number": "STAFF002",
+    "student_number": null,
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$aNzNX85h0AsABiRvZayPj8$uCZw7l9P2tb6tTGDMVFYh+V2jbtgOTEpcrB2N2veGTc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "wechsamuel",
+    "first_name": "Wech",
+    "last_name": "Samuel",
+    "email": "wech@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-28T12:55:46.936Z",
+    "role": "student",
+    "department": "Computer Science",
+    "staff_number": "",
+    "student_number": "2500703363",
+    "phone_number": "+256762164765",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.customuser",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$720000$udtsy2gKV2QaIiKrEjjSxX$VdcBenClIxhbQDgssmsT9mXc5mi1UIugp0Jw8DIzKYI=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "Chol",
+    "first_name": "",
+    "last_name": "",
+    "email": "Chnhaj@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-05-07T10:04:11.726Z",
+    "role": "student",
+    "department": null,
+    "staff_number": null,
+    "student_number": null,
+    "phone_number": null,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 1,
+  "fields": {
+    "student": 2,
+    "company_name": "Chol LImited",
+    "start_date": "2026-04-27",
+    "end_date": "2026-07-27",
+    "workplace_supervisor": 3,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-04-27T11:23:36.811Z",
+    "updated_at": "2026-04-27T11:23:36.811Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 2,
+  "fields": {
+    "student": 4,
+    "company_name": "NSSF",
+    "start_date": "2026-04-27",
+    "end_date": "2026-07-27",
+    "workplace_supervisor": null,
+    "academic_supervisor": null,
+    "is_active": false,
+    "created_at": "2026-04-27T16:57:25.657Z",
+    "updated_at": "2026-05-06T22:52:17.789Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 3,
+  "fields": {
+    "student": 4,
+    "company_name": "NSSF",
+    "start_date": "2026-04-27",
+    "end_date": "2026-07-27",
+    "workplace_supervisor": 5,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-04-27T17:28:05.993Z",
+    "updated_at": "2026-04-27T17:28:05.993Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 4,
+  "fields": {
+    "student": 4,
+    "company_name": "NSSF",
+    "start_date": "2026-04-27",
+    "end_date": "2026-04-27",
+    "workplace_supervisor": 5,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-04-27T19:32:48.856Z",
+    "updated_at": "2026-05-01T20:47:38.234Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 5,
+  "fields": {
+    "student": 6,
+    "company_name": "City Oil",
+    "start_date": "2026-04-28",
+    "end_date": "2026-07-28",
+    "workplace_supervisor": 3,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-04-28T12:56:53.333Z",
+    "updated_at": "2026-04-28T12:56:53.333Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 6,
+  "fields": {
+    "student": 6,
+    "company_name": "Mobile Telecom Network",
+    "start_date": "2026-01-24",
+    "end_date": "2026-04-28",
+    "workplace_supervisor": 3,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-04-29T06:27:35.766Z",
+    "updated_at": "2026-05-01T21:20:13.699Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 7,
+  "fields": {
+    "student": 1,
+    "company_name": "Mobile Telecom Network",
+    "start_date": "2026-05-01",
+    "end_date": "2026-08-01",
+    "workplace_supervisor": 3,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-05-01T20:45:21.438Z",
+    "updated_at": "2026-05-01T20:45:21.438Z"
+  }
+},
+{
+  "model": "core.internshipplacement",
+  "pk": 8,
+  "fields": {
+    "student": 1,
+    "company_name": "Mobile Telecom Network",
+    "start_date": "2026-05-01",
+    "end_date": "2026-08-01",
+    "workplace_supervisor": 3,
+    "academic_supervisor": null,
+    "is_active": true,
+    "created_at": "2026-05-01T20:47:07.609Z",
+    "updated_at": "2026-05-01T20:47:07.609Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 1,
+  "fields": {
+    "placement": 1,
+    "week_number": 1,
+    "week_ending_date": "2026-04-27",
+    "activities": "Attended team meetings and worked on frontend tasks",
+    "key_learnings": "Learned about React components",
+    "challenges": "Understanding state management",
+    "status": "approved",
+    "supervisor_feedback": "",
+    "submitted_at": "2026-04-27T11:33:32.929Z",
+    "reviewed_at": "2026-04-27T11:35:19.102Z",
+    "created_at": "2026-04-27T11:29:53.320Z",
+    "updated_at": "2026-04-27T11:35:19.103Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 2,
+  "fields": {
+    "placement": 1,
+    "week_number": 2,
+    "week_ending_date": "2026-04-27",
+    "activities": "Trial for the email work",
+    "key_learnings": "Seeing if the email will show at the terminal",
+    "challenges": "yet to see any",
+    "status": "approved",
+    "supervisor_feedback": "Let's see ",
+    "submitted_at": "2026-04-27T11:53:16.362Z",
+    "reviewed_at": "2026-04-27T11:54:11.714Z",
+    "created_at": "2026-04-27T11:53:10.766Z",
+    "updated_at": "2026-04-27T11:54:11.717Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 3,
+  "fields": {
+    "placement": 1,
+    "week_number": 3,
+    "week_ending_date": "2026-04-27",
+    "activities": "Trying to see the email appear on the terminal after approval of this",
+    "key_learnings": "Had to correct apps.py in my backend",
+    "challenges": "Alot",
+    "status": "approved",
+    "supervisor_feedback": "Hope we see the email",
+    "submitted_at": "2026-04-27T12:07:33.968Z",
+    "reviewed_at": "2026-04-27T12:08:22.431Z",
+    "created_at": "2026-04-27T12:07:31.031Z",
+    "updated_at": "2026-04-27T12:08:22.432Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 4,
+  "fields": {
+    "placement": 1,
+    "week_number": 4,
+    "week_ending_date": "2026-04-27",
+    "activities": "Last try to see if email will be sent after approval of the log",
+    "key_learnings": "Email wasn't being sent to the backend",
+    "challenges": "A few",
+    "status": "approved",
+    "supervisor_feedback": "OKay",
+    "submitted_at": "2026-04-27T16:32:12.893Z",
+    "reviewed_at": "2026-04-27T16:33:16.912Z",
+    "created_at": "2026-04-27T16:32:06.980Z",
+    "updated_at": "2026-04-27T16:33:16.913Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 5,
+  "fields": {
+    "placement": 4,
+    "week_number": 1,
+    "week_ending_date": "2026-04-28",
+    "activities": "Trying to see if i will recieve and email after submitting a log and when it's revived",
+    "key_learnings": "Nothing much",
+    "challenges": "Alot of them",
+    "status": "approved",
+    "supervisor_feedback": "",
+    "submitted_at": "2026-04-27T22:20:50.183Z",
+    "reviewed_at": "2026-04-27T22:21:34.576Z",
+    "created_at": "2026-04-27T22:20:45.245Z",
+    "updated_at": "2026-04-27T22:21:34.581Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 6,
+  "fields": {
+    "placement": 1,
+    "week_number": 5,
+    "week_ending_date": "2026-04-28",
+    "activities": "Last try of the email",
+    "key_learnings": "Be ready to learn all the time",
+    "challenges": "Frastrustion from failed attempts",
+    "status": "approved",
+    "supervisor_feedback": "Last try before sleep",
+    "submitted_at": "2026-04-27T23:07:37.930Z",
+    "reviewed_at": "2026-04-27T23:08:43.657Z",
+    "created_at": "2026-04-27T23:07:23.648Z",
+    "updated_at": "2026-04-27T23:08:43.659Z"
+  }
+},
+{
+  "model": "core.weeklylog",
+  "pk": 7,
+  "fields": {
+    "placement": 5,
+    "week_number": 1,
+    "week_ending_date": "2026-04-28",
+    "activities": "Oil filling",
+    "key_learnings": "Alot",
+    "challenges": "Many",
+    "status": "approved",
+    "supervisor_feedback": "",
+    "submitted_at": "2026-04-28T12:59:42.716Z",
+    "reviewed_at": "2026-04-28T13:00:11.636Z",
+    "created_at": "2026-04-28T12:59:38.815Z",
+    "updated_at": "2026-04-28T13:00:11.641Z"
+  }
+},
+{
+  "model": "core.evaluationcriteria",
+  "pk": 1,
+  "fields": {
+    "name": "Technical Skills",
+    "description": "Ability to apply technical knowledge in the workplace",
+    "weight": "0.40",
+    "created_by": 1,
+    "is_active": true,
+    "created_at": "2026-04-28T06:40:05.476Z",
+    "updated_at": "2026-04-28T06:40:05.476Z"
+  }
+},
+{
+  "model": "core.evaluationcriteria",
+  "pk": 2,
+  "fields": {
+    "name": "Communication",
+    "description": "Written and verbal communication with team members",
+    "weight": "0.30",
+    "created_by": 1,
+    "is_active": true,
+    "created_at": "2026-04-28T06:40:05.494Z",
+    "updated_at": "2026-04-28T06:40:05.494Z"
+  }
+},
+{
+  "model": "core.evaluationcriteria",
+  "pk": 3,
+  "fields": {
+    "name": "Professionalism",
+    "description": "Punctuality, attitude and workplace conduct",
+    "weight": "0.30",
+    "created_by": 1,
+    "is_active": true,
+    "created_at": "2026-04-28T06:40:05.509Z",
+    "updated_at": "2026-04-28T06:40:05.509Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 1,
+  "fields": {
+    "placement": 1,
+    "criteria": 1,
+    "score": "87.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T08:06:52.508Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 2,
+  "fields": {
+    "placement": 1,
+    "criteria": 2,
+    "score": "94.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T08:06:52.572Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 3,
+  "fields": {
+    "placement": 1,
+    "criteria": 3,
+    "score": "74.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T08:06:52.628Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 4,
+  "fields": {
+    "placement": 5,
+    "criteria": 1,
+    "score": "75.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T13:00:36.090Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 5,
+  "fields": {
+    "placement": 5,
+    "criteria": 2,
+    "score": "82.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T13:00:36.188Z"
+  }
+},
+{
+  "model": "core.evaluation",
+  "pk": 6,
+  "fields": {
+    "placement": 5,
+    "criteria": 3,
+    "score": "88.00",
+    "evaluated_by": 3,
+    "evaluated_at": "2026-04-28T13:00:36.265Z"
+  }
+},
+{
+  "model": "core.overallevaluation",
+  "pk": 1,
+  "fields": {
+    "placement": 5,
+    "total_score": "81.00",
+    "grade": "A",
+    "evaluated_at": "2026-04-28T18:10:51.432Z",
+    "updated_at": "2026-04-28T18:11:03.359Z"
+  }
+},
+{
+  "model": "core.overallevaluation",
+  "pk": 2,
+  "fields": {
+    "placement": 1,
+    "total_score": "85.20",
+    "grade": "A",
+    "evaluated_at": "2026-04-28T18:11:12.156Z",
+    "updated_at": "2026-04-28T21:31:22.914Z"
+  }
+}
+]
