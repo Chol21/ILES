@@ -1,17 +1,23 @@
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerUIView
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="ILES API",
+        default_version='v1',
+        description="Internship Log and Evaluation System",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
-    # Admin
     path('admin/', admin.site.urls),
-
-    # Your API endpoints (auth, users, students, placements, etc.)
     path('api/', include('api.urls')),
-
-    # OpenAPI schema (JSON)
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-
-    # Swagger UI (the pretty docs page)
-    path('api/docs/', SpectacularSwaggerUIView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('api/schema/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
